@@ -1,0 +1,93 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+{% if pr_count > 0 %}
+<form id="yearform" action="/ledger/" method="post">  {% csrf_token %}
+    Aasta: <select name="year" onchange="this.form.submit()">
+    {% for r in prs %}
+    <option value="{{r.aasta}}" {% if r == pr %} selected="selected" {% endif %}>{{r.aasta}}</option>
+    {% endfor %}
+    </select>
+    <input type="submit" name="action" value="Algsaldo"/> 
+    <input type="submit" name="action" value="Tulude-Kulude sulgemine"/> 
+    <input type="submit" name="action" value="A-tehingute kustutamine"/> 
+    <input type="submit" name="action" value="Aasta lõpetamine"/> 
+</form>
+<TABLE width="100%">
+  <tr>    
+    <td>
+      <form action="/ledger/" method="post" enctype="multipart/form-data" accept-charset="utf-8"> {% csrf_token %}
+        <input type="file" name="cvs"/>
+        <input type="submit" name="action" value="Loe tehingud" />
+        <input type="submit" name="action" value="Kirjuta tehingud faili" />
+      </form>
+    </td>
+  </tr>
+</table>
+{% endif %}
+<p> Tehingute arv: {{dc}}</p>
+<TABLE width="100%">
+<TR>
+    <TD>
+      <table id="transactions">
+        {% for d in deals %}
+        <tr class="{% cycle 'alt' 'norm' %}">
+            <td style="width:3%">
+                {% if d.on_manual %} <img src="/icons/user.png" />
+                {% else %} <img src="/icons/computer.png" />
+                {% endif %}
+            </td>
+            <td style="width:6%">{{d.tehingupaev|date:"d.m.y"}}</td>
+            <td>{{d.sisu}}</td>
+            <td style="width:6%">{{d.kandeid}}</td>
+            <td style="width:6%">
+                {% if d.korras %} <img src="/icons/accept.png" />
+                {% else %} <img src="/icons/error.png" />
+                {% endif %}</td>
+            <td style="width:6%">
+                <form action="/ledger/" method="post">  {% csrf_token %}
+                    <input type="hidden" name="deal_id" value="{{d.id}}" />
+                    <input type="image" name="action" value="Update" src="/icons/table_edit.png"/>
+                    {% if not d.on_manual %}
+                    <input type="image" name="action" value="Delete" src="/icons/table_delete.png"/>
+                    {% endif %}
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        <tr>
+          <td></td>
+          <td>
+            <form action="/ledger/" method="post">  {% csrf_token %}
+              <input type="hidden" name="pk" value="{{year}}"/>
+              <input type="image" name="action" value="Add" src="/icons/add.png"/>
+            </form>
+          </td>
+        </tr>
+      </table>
+    </TD>
+</TR>
+</TABLE>
+
+<p>Algsaldod</p>
+<TABLE width="100%">
+<TR>
+    <TD>
+      <table id="transactions">
+        {% for a in algs %}
+        <tr class="{% cycle 'alt' 'norm' %}">
+            <td>{{a.konto}}</td>
+            <td style="width:5%">{{a.on_deebet}}</td>
+            <td style="width:5%">{{a.on_manual}}</td>
+            <td style="width:5%">{{a.on_fikseeritud}}</td>
+            <td align="right" style="width:10%">{{a.summa}}</td>
+            <td style="width:5%">{{a.konto.valuuta}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </TD>
+</TR>
+</TABLE>
+
+{% endblock %}

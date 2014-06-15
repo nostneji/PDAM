@@ -1,0 +1,110 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+<TABLE width="100%">
+<tr>    
+    <td>
+      <form action="/assets/do/" method="post" enctype="multipart/form-data" accept-charset="utf-8"> {% csrf_token %}
+        <input type="file" name="cvs"/>
+        <input type="submit" name="action" value="Loe varad" />
+        <input type="submit" name="action" value="Kirjuta varad faili" />
+        <input type="submit" name="action" value="Kustuta tehingud" />
+        <input type="submit" name="action" value="Kustuta varad" />
+        <input type="submit" name="action" value="Ümberarvutus" />
+      </form>
+    </td>
+</tr>
+</TABLE>
+<!--
+     ({'Kpv': date2str(kpv)}, 
+                [{'tyyp':'Aktsiad', 'sh':SH.get('A'), 'th':TH.get('A'), 'rs':RS.get('A')},
+                       {'tyyp':'Võlakirjad', 'sh':SH.get('V'), 'th':TH.get('V'), 'rs':RS.get('V')},
+                       {'tyyp':'Alt.investeeringud', 'sh':SH.get('I'), 'th':TH.get('I'), 'rs':RS.get('I')},
+                       {'tyyp':'KOKKU', 'sh':SH.get('A')+SH.get('V')+SH.get('I'), 
+                        'th':TH.get('A')+TH.get('V')+TH.get('I'), 'rs':RS.get('A')+RS.get('V')+RS.get('I')}]
+                ) 
+ -->
+<table id="transactions">
+    <tr>
+        <th>Kuupäev</th>
+        <th>Tüüp</th>
+        <th>Soetusväärtus</th>
+        <th>Turuväärtus</th>
+        <th>Reserv</th>
+    </tr>
+    {% for i in statb.1 %}
+    <tr>
+        <td>{% if i.tyyp == 'Aktsiad' %}{{statb.0.Kpv}}{% endif %}</td>
+        <td>{{i.tyyp}}</td>
+        <td>{{i.sh}}</td>
+        <td>{{i.th}}</td>
+        <td>{{i.rs}}</td>
+    </tr>
+    {% endfor %}
+    {% for i in state.1 %}
+    <tr>
+        <td>{% if i.tyyp == 'Aktsiad' %}{{state.0.Kpv}}{% endif %}</td>
+        <td>{{i.tyyp}}</td>
+        <td>{{i.sh}}</td>
+        <td>{{i.th}}</td>
+        <td>{{i.rs}}</td>
+    </tr>
+    {% endfor %}
+</table>
+<TABLE width="100%">
+<TR>
+    <TD>
+      <table id="transactions">
+        {% if count > 0 %}
+            {% for r in assets %}
+            <tr class="{% cycle 'alt' 'norm' %}">
+                <td>{{r.nimetus}}</td>
+                <td>{{r.vp_tyyp}}</td>
+                <td>{{r.lyhend}}</td>
+                <td>
+                    <form action="/assets/do/" method="post">  {% csrf_token %}
+                        <input type="hidden" name="pk" value="{{r.id}}"/>
+                        <input type="image" name="action" value="Update" src="/icons/table_edit.png"/>
+                        <input type="image" name="action" value="Delete" src="/icons/table_delete.png"/>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        {% endif %}
+        <tr>
+          <td></td>
+          <td>
+            <form action="/assets/do/" method="post">  {% csrf_token %}
+              <input type="image" name="action" value="Add" src="/icons/add.png"/>
+            </form>
+          </td>
+        </tr>
+      </table>
+    </TD>
+</TR>
+</TABLE>
+
+<table id="transactions">
+    <tr>
+        <th>Kuupäev</th>
+        <th>Tüüp</th>
+        <th>Soetusväärtus</th>
+        <th>Turuväärtus</th>
+        <th>Reserv</th>
+    </tr>
+    {% for x in stat %}
+    {% for i in x.1 %}
+    <tr>
+        <td>{% if i.tyyp == 'Aktsiad' %}{{x.0.Kpv}}{% endif %}</td>
+        <td>{{i.tyyp}}</td>
+        <td>{{i.sh}}</td>
+        <td>{{i.th}}</td>
+        <td>{{i.rs}}</td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+</table>
+
+
+{% endblock %}

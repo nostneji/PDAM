@@ -1,0 +1,99 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+{% if pr_count > 0 %}
+<form id="yearform" action="/report/" method="post">  {% csrf_token %}
+    Aasta: <select name="year">
+    {% for r in prs %}
+    <option value="{{r.aasta}}" {% if r == pr %} selected="selected" {% endif %}>{{r.aasta}}</option>
+    {% endfor %}
+    </select>
+    <input type="submit" name="action" value="Genereeri ümberhindlused"/> 
+    <input type="submit" name="action" value="Kustuta erinevustega tehingud"/> 
+</form>
+{% endif %}
+
+<p>KANNETETA VARATEHINGUD</p>
+  <table id="transactions">
+     <th>
+        <td>Vara</td>
+        <td>Tüüp</td>
+        <td>Lühend</td>
+        <td>Väärtuspäev</td>
+        <td>Kogus</td>
+        <td>Summa</td>
+        <td>€-summa</td>
+    </th>
+   {% for i in vtx %}
+    <tr class="{% cycle 'alt' 'norm' %}">
+        <td>{{i.tyyp}}</td>
+        <td>{{i.vara.nimetus}}</td>
+        <td>{{i.vara.vp_tyyp}}</td>
+        <td>{{i.vara.lyhend}}</td>
+        <td>{{i.vaartuspaev|date:"d.m.y"}}</td>
+        <td align="right">{{i.kogus}}</td>
+        <td align="right">{{i.summa}} {{i.valuuta}}</td>
+        <td align="right">{{i.eur_summa}} €</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+<p>RESERVI MUUTUMINE</p>
+  <table id="transactions">
+     <th>
+        <td>Kuupäev</td>
+        <td>Tehing</td>
+        <td>Konto muutus</td>
+        <td>Vara muutus</td>
+        <td>Konto seis</td>
+        <td>Vara seis</td>
+    </th>
+   {% for i in data %}
+    <tr class="{% cycle 'alt' 'norm' %}">
+        <td></td>
+        <td>{{i.kpv}}</td>
+        <td>{{i.tehing}}</td>
+        <td align="right" {% if i.dk != i.dv %} bgcolor="red" {% endif %}>{{i.dk}}</td>
+        <td align="right">{{i.dv}}</td>
+        <td align="right">{{i.k}}</td>
+        <td align="right">{{i.v}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  
+<p>VARADE SEIS</p>
+  <table id="transactions">
+     <th>
+        <td>Vara</td>
+        <td>Tüüp</td>
+        <td>Kogus</td>
+        <td>Soetusväärtus</td>
+        <td>Turuväärtus</td>
+        <td>Reserv</td>
+    </th>
+   {% for i in asst %}
+    <tr class="{% cycle 'alt' 'norm' %}">
+        <td></td>
+        <td>{{i.nimetus}}</td>
+        <td>{{i.tyyp}}</td>
+        <td align="right">{{i.kogus}}</td>
+        <td align="right">{{i.sh}}</td>
+        <td align="right">{{i.th}}</td>
+        <td align="right">{{i.rs}}</td>
+    </tr>
+    {% endfor %}
+    {% for i in sums %}
+    <tr class="{% cycle 'alt' 'norm' %}">
+        <td></td>
+        <td>{{i.tyyp}}</td>
+        <td></td>
+        <td align="right"></td>
+        <td align="right">{{i.sh}}</td>
+        <td align="right">{{i.th}}</td>
+        <td align="right">{{i.rs}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}

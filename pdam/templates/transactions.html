@@ -1,0 +1,35 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+<TABLE width="100%">
+<TR>
+	<TD>
+	  <form action="/bank/do/" method="post">  {% csrf_token %}
+      <table id="transactions">
+      	{% for r in rows %}
+      	<tr class="{% cycle 'alt' 'norm' %}">
+      		<td>{% if r.arvestatud == 'J' %} <img src="/icons/accept.png" />
+      			{% else %} <img src="/icons/lightbulb.png" />
+      			{% endif %}
+      		</td>
+      		<td>{{r.kuupaev|date:"d.m.y"}}</td>
+      		<td>{{r.selgitus}}</td>
+      		<td align="right">{{r.summa}}</td>
+      		<td>{{r.valuuta}}</td>
+      		<td>{{r.deebet}}</td>
+      		<td>{{r.arhiveerimistunnus}}</td>
+            <td>{{r.tunnus}}</td>
+      	</tr>
+        {% endfor %}
+		<tr>
+		  <td><INPUT TYPE="hidden" NAME="pk" value="{{pk}}" /></td>
+		  <td><input type="submit" name="action" value="Cancel" /></td>
+		</tr>
+      </table>
+	  </form>
+	</TD>
+</TR>
+</TABLE>
+
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+<table id = "log">
+    {% for l in LOG %}
+    <tr>
+        <td>{{l.0}}</td>
+        {% if l.1 == 'E' %}
+        <td class="error">{{l.1}}</td>
+        {% else %}{% if l.1 == 'W' %}
+        <td class="warning">{{l.1}}</td>
+        {% else %}
+        <td class="info">{{l.1}}</td>
+        {% endif %}{% endif %}
+        <td>{{l.2}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

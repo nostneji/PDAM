@@ -1,0 +1,48 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+<TABLE width="100%">
+<tr>    
+    <td>
+      <form action="/rule/do/" method="post" enctype="multipart/form-data" accept-charset="utf-8"> {% csrf_token %}
+        <input type="file" name="cvs"/>
+        <input type="submit" name="action" value="Loe reeglid" />
+        <input type="submit" name="action" value="Kirjuta reeglid faili" />
+      </form>
+    </td>
+</tr>
+</TABLE>
+<TABLE width="100%">
+<TR>
+	<TD>
+      <table id="transactions">
+      	{% if count > 0 %}
+	      	{% for r in rules %}
+	      	<tr class="{% cycle 'alt' 'norm' %}">
+	      		<td>{{r.kirjeldus}}</td>
+	      		<td>
+                    <form action="/rule/do/" method="post">  {% csrf_token %}
+	      			    <input type="hidden" name="pk" value="{{r.id}}"/>
+	      			    <input type="image" name="action" value="Update" src="/icons/table_edit.png"/>
+                        <input type="image" name="action" value="Delete" src="/icons/table_delete.png"/>
+                    </form>
+	      		</td>
+	      	</tr>
+	        {% endfor %}
+        {% endif %}
+		<tr>
+		  <td></td>
+		  <td>
+		  	<form action="/rule/do/" method="post">  {% csrf_token %}
+              <input type="hidden" name="pk" value=""/>
+		  	  <input type="image" name="action" value="Add" src="/icons/add.png"/>
+		  	</form>
+		  </td>
+		</tr>
+      </table>
+	</TD>
+</TR>
+</TABLE>
+
+{% endblock %}

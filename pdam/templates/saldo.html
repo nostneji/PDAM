@@ -1,0 +1,68 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+<TABLE width="100%">
+<TR>
+    <TD>{{year}} ALGSALDO</TD>
+</TR>
+<TR>
+    <TD>
+        <table>
+            <tr>
+                <td>Aktiva</td><td>{{ rp.Aktiva }}</td>
+                <td>Passiva</td><td>{{ rp.Passiva }}</td>
+                <td>Tulud</td><td>{{ rp.Tulud }}</td>
+                <td>Kulud</td><td>{{ rp.Kulud }}</td>
+                <td>RP</td><td>{{ rp.RP }}</td>
+            </tr>
+        </table>
+    </TD>
+</TR>
+<TR>
+    <TD>
+      <table id="transactions">
+        {% if icount > 0 %}
+            {% for i in items %}
+            <tr class="{% cycle 'alt' 'norm' %}">
+                <td style="width:3%">{% if i.on_manual %} <img src="/icons/user.png" />
+                    {% else %} <img src="/icons/computer.png" />
+                    {% endif %}
+                </td>
+                <td style="width:3%">{% if i.on_fikseeritud %} <img src="/icons/lock.png" />
+                    {% else %} <img src="/icons/lock_open.png" />
+                    {% endif %}
+                </td>
+                <td>{{i.konto}}</td>
+                <td>{% if i.on_deebet %} D {% else %} K {% endif %}</td>
+                <td>{{i.summa}} {{i.konto.valuuta}}</td>
+                <td>
+                    <form action="/ledger/" method="post">  {% csrf_token %}
+                        <input type="hidden" name="year" value="{{year}}" />
+                        <input type="hidden" name="pk" value="{{pk}}" />
+                        <input type="hidden" name="ipk" value="{{i.id}}" />
+                        <input type="image" name="action" value="SaldoUpdate" src="/icons/table_edit.png"/>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        {% endif %}
+      </table>
+    </TD>
+</TR>
+<TR>
+    <TD>
+      <form action="/ledger/" method="post">  {% csrf_token %}
+      <table>
+        {{ form.as_table }} <!-- Algsaldo kirje -->
+        <tr>
+          <td><input type="hidden" name="pk" value="{{pk}}" /><input type="hidden" name="ipk" value="{{ipk}}" /></td>
+          <td><input type="submit" name="action" value="Save" /><input type="submit" name="action" value="Cancel" /></td>
+        </tr>
+      </table>
+      </form>
+    </TD>
+</TR>
+</TABLE>
+
+{% endblock %}

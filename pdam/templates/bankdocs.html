@@ -1,0 +1,45 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+<div>
+	<table>
+	  <tr>
+	  	<td>
+	      <h3>Pangadokumendid</h3>
+	   </td>
+	  </tr>
+	  <tr>
+	  	<td>
+	  	  <form action="/bank/do/" method="post" enctype="multipart/form-data" accept-charset="utf-8"> {% csrf_token %}
+		    <INPUT TYPE="file" NAME="cvs"/>
+		    <input type="submit" name="action" value="LoadCVS" />
+		  </form>
+	   </td>
+	  </tr>
+	</table>
+</div>
+
+{% if count > 0 %}
+<table id="transactions">
+{% for d in docs %}
+  <tr>
+    <td>
+      {{ d.failinimi }} 
+    </td>
+    <td>
+      {{ d.import_aeg|date:"d.m.y" }}
+    </td>
+    <td>
+      <form action="/bank/do/" method="post"> {% csrf_token %}
+	    <INPUT TYPE="hidden" NAME="pk" value="{{d.pk}}" />
+        <input type="submit" name="action" value="View" />
+        <input type="submit" name="action" value="Update" />
+        <input type="submit" name="action" value="Delete" />
+      </form>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}

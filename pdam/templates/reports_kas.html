@@ -1,0 +1,71 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+{% if pr_count > 0 %}
+<form id="yearform" action="/report/?rt=kas" method="post">  {% csrf_token %}
+    Aasta: <select name="year" onchange="this.form.submit()">
+    {% for r in prs %}
+    <option value="{{r.aasta}}" {% if r.aasta == year %} selected="selected" {% endif %}>{{r.aasta}}</option>
+    {% endfor %}
+    </select>
+</form>
+{% endif %}
+
+<p>KASUMIARUANNE (kasumiaruande skeem nr.1)</p>
+  <table id="transactions">
+     <tr>
+        <th>Konto</th>
+        <th>Summa</th>
+    </tr>
+   {% for i in vtx %}
+    <tr class="{% cycle 'alt' 'norm' %}">
+        <td>{% if i.Fmt == 'S' %}<i>{% else %} {% if i.Fmt == 'T' %}<b>{% endif %} {% endif %}
+            {{i.konto}}
+            {% if i.Fmt == 'S' %}</i>{% else %} {% if i.Fmt == 'T' %}</b>{% endif %} {% endif %}
+        </td>
+        <td align="right">{% if i.Fmt == 'S' %}<i>{% else %} {% if i.Fmt == 'T' %}<b>{% endif %} {% endif %}
+            {{i.summa}}
+            {% if i.Fmt == 'S' %}</i>{% else %} {% if i.Fmt == 'T' %}</b>{% endif %} {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+  </table>
+  
+<p>FINANTSTULUD JA -KULUD</p>
+  <table id="transactions">
+     <tr>
+        <th>Konto</th>
+        <th>Summa</th>
+    </tr>
+   {% for i in fin %}
+    <tr class="{% cycle 'alt' 'norm' %}">
+        <td>{% if i.Fmt == 'S' %}<i>{% else %} {% if i.Fmt == 'T' %}<b>{% endif %} {% endif %}
+            {{i.konto}}
+            {% if i.Fmt == 'S' %}</i>{% else %} {% if i.Fmt == 'T' %}</b>{% endif %} {% endif %}
+        </td>
+        <td align="right">{% if i.Fmt == 'S' %}<i>{% else %} {% if i.Fmt == 'T' %}<b>{% endif %} {% endif %}
+            {{i.summa}}
+            {% if i.Fmt == 'S' %}</i>{% else %} {% if i.Fmt == 'T' %}</b>{% endif %} {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+  </table>
+  
+<p>Tulud ja kulud kontode kaupa</p>
+  <table id="transactions">
+     <tr>
+        <th>Osa</th>
+        <th>Konto</th>
+        <th>Summa</th>
+    </tr>
+   {% for i in tot %}
+    <tr class="{% cycle 'alt' 'norm' %}">
+        <td>{{i.osa}}</td>
+        <td>{{i.konto}}</td>
+        <td align="right">{{i.summa}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}

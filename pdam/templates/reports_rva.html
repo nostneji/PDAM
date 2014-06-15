@@ -1,0 +1,35 @@
+{% extends "ftest-base.html" %}
+
+{% block content %}
+
+{% if pr_count > 0 %}
+<form id="yearform" action="/report/?rt=rva" method="post">  {% csrf_token %}
+    Aasta: <select name="year" onchange="this.form.submit()">
+    {% for r in prs %}
+    <option value="{{r.aasta}}" {% if r.aasta == year %} selected="selected" {% endif %}>{{r.aasta}}</option>
+    {% endfor %}
+    </select>
+</form>
+{% endif %}
+
+<p>RAHAVOOGUDE ARUANNE</p>
+  <table id="transactions">
+     <tr>
+        <th>Konto</th>
+        <th>Summa</th>
+    </tr>
+   {% for i in rva %}
+    <tr class="{% cycle 'alt' 'norm' %}">
+        <td>{% if i.Fmt == 'S' %}<i>{% else %} {% if i.Fmt == 'T' %}<b>{% endif %} {% endif %}
+            {{i.konto}}
+            {% if i.Fmt == 'S' %}</i>{% else %} {% if i.Fmt == 'T' %}</b>{% endif %} {% endif %}
+        </td>
+        <td align="right">{% if i.Fmt == 'S' %}<i>{% else %} {% if i.Fmt == 'T' %}<b>{% endif %} {% endif %}
+            {{i.summa}}
+            {% if i.Fmt == 'S' %}</i>{% else %} {% if i.Fmt == 'T' %}</b>{% endif %} {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}

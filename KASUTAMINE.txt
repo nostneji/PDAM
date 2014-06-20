@@ -1,0 +1,127 @@
+Rakenduse PDAM kasutamine
+
+1. Peab olema loodud ja sisse loetud kontoplaan.
+
+Kontoplaani failiformaadiks on CSV, milles väljade eraldajateks on semikoolonid (;) ja
+iga rida omab ühe konto kohta järgmist infot:
+a) kontoplaani osa C(1); A-aktiva, P-passiva, T-tulud, K-kulud
+b) konto number C(5)
+c) konto nimetus C(255)
+d) konto valuuta C(3)
+e) seotud pangakonto number C(20)
+
+Näiteks:
+A;1131;Arvelduskonto;EUR;
+
+Sisselugemine:
+Menüü('Kontoplaan') / Nupp('Loe kontoplaan')
+
+2. Peab olema tekitatud pearaamatu kirje töödeldava aasta jaoks.
+
+Töödeldava aasta sulgemine tekitab baasi uue aasta jaoks avatud kirje.
+
+3. Peavad olema loodud ja sisse loetud tehingute analüüsimise reeglid.
+
+Reeglite failiformaadiks on CSV, milles väljade eraldajateks on semikoolonid (;) ja
+iga rida omab reegli kohta järgmist infot:
+a) rea tüüp C(2); TT-tehingutüüp, KK-kontokasutus
+TT korral:
+b) tehingu kirjeldus C(100)
+c) tehingurea tüüp N(2)
+d) tehingurea tunnus C(10)
+e) reegli triger C(255); regulaaravaldis
+KK korral:
+b) konto number C(5)
+c) konto pool C(1); K-kreedit, D-deebet
+d) kande vääruse arvutamise valem
+
+Valemi süntaks:
+  
+  prefixid: ':' - lokaalne muutuja; '@' - aktiivse kirje väli; '#' - tingimustele vastava kirje väli
+  omistus ::- [ '{' tv_exp '}' ] locvar '=' exp . 
+  exp ::- add [ ('+'|'-') add ] .
+  add ::- term [ ('*'|'/') term ] .
+  term ::- var | '(' exp ')' | func | numval | charval .
+  var ::- locvar | recvar | qryvar .
+  locvar ::- ':' id .
+  recvar ::- '@' id .
+  qryvar ::- '#' id .
+  func ::- '_' id '(' [ params ] ')' .
+  params ::- exp { ',' exp } .
+  numval ::- intval [ '.' intval ] .
+  intval ::- '0'..'9' { '0'..'9' } .
+  charval ::- '\'' string '\'' .
+  tv_exp ::- exp ('<'|'>'|'='|'&') exp .
+
+Näiteks:
+
+TT;Valuutavahetus GBP->EUR;20;X;^VV: GBP.+-> EUR;
+KK;115;K;:B=_gbp2eur(:X,@kpv)
+KK;1154;K;{@d='D'&@c='GBP'}:X=@s
+KK;339;K;{:Y>:B}:C=:Y-:B
+KK;469;D;{:Y<:B}:A=:B-:Y
+KK;1132;D;{#d='K'&#a=@a&#c='EUR'}:Y=#s
+
+Sisselugemine:
+Menüü('Reeglid') / Nupp('Loe reeglid')
+
+4. Tuleb sisse lugeda pangast saadud pangatehingute fail(id)
+
+Pangatehingute failiformaadiks on CSV, milles väljade eraldajateks on semikoolonid (;) ja
+iga rida omab tehingu kohta järgmist infot:
+a) "Kliendi konto"
+b) "Reatüüp"
+c) "Kuupäev"
+d) "Saaja/Maksja"
+e) "Selgitus"
+f) "Summa"
+g) "Valuuta"
+h) "Deebet/Kreedit"
+i) "Arhiveerimistunnus"
+j) "Tehingu tüüp"
+k) "Viitenumber"
+l) "Dokumendi number"
+Esimesel real võib olla ka vastavate väljanimetuste rida.
+
+Näiteks:
+
+"221030483625";"20";"31.01.2012";"";"221030483625 intress 1.88 EUR";"1,88";"EUR";"K";"2012013100928798";"I";"";"";
+
+Sisselugemine:
+Menüü('Pangafailid') / Nupp('LoeCVS')
+
+5. Tuleb sisse lugeda varatehingute fail(id)
+
+Varatehingute failiformaadiks on CSV, milles väljade eraldajateks on semikoolonid (;) ja
+iga rida omab varatehingu kohta järgmist infot:
+a) "Tehingu ref." või bloki esimesel real väärtpaberi nimetus
+b) "Tehingu tüüp"
+c) "Väärtuspäev"
+d) "Teenustasu"
+e) Bloki sees valuuta.
+f) "Komisjoni tasu"
+g) Bloki sees valuuta.
+h) "Välisturu tasu"
+i) Bloki sees valuuta.
+j) "Finantstehingu maks"
+k) Bloki sees valuuta.
+l) "Tehingu summa"
+m) Bloki sees valuuta.
+n) "Hind"
+o) Bloki sees valuuta. Bloki esimesel real "Algsaldo" ja viimasel real "Lõppsaldo".
+p) "Kogus"
+Esimesel real võib olla ka vastavate väljanimetuste rida.
+
+NB! Kui baas on tühi ja on olemas eelnevalt genereeritud fail assetdeals.csv, siis kõigepealt lugeda sisse see fail.
+
+Näiteks:
+
+"DB X-TRACK DBLCI OY BALANCED ETF LU0292106167";"";"";"";"";"";"";"";"";"";"";"";"";"";"Algsaldo";"233";
+"1208270268502";"APMT - ";"28.08.2012";"6.39";"EUR";"10";"EUR";"0";"EUR";"0";"EUR";"7607.59";"EUR";"32.6506";"EUR";"-233";
+"1211156483602";"APMT + ";"16.11.2012";"6.39";"EUR";"10";"EUR";"0";"EUR";"0";"EUR";"6645.45";"EUR";"31.645";"EUR";"210";
+"";"";"";"";"";"";"";"";"";"";"";"";"";"";"Lõppsaldo";"210";
+
+6. Käivitada pangatehingute analüüs
+
+Käivitamine:
+Menüü('Protsess') -- see võtab üsna palju aega, kannatust!

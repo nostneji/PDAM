@@ -1,9 +1,9 @@
-from django.conf.urls.defaults import *
-from FormTest.formtest.views import *
+from django.conf.urls import *
+from PDAM.pdam.views import *
 
 # handler500 = 'djangotoolbox.errorviews.server_error'
 
-urlpatterns = patterns('formtest.views',
+urlpatterns = patterns('pdam.views',
     (r'^report/$', reports),
     (r'^assets/do/$', asset_action_handler),
     (r'^assets/$', assets),

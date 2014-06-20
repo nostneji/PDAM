@@ -1,19 +1,21 @@
 # coding: utf-8
+
 '''
 Created on 08.11.2011
 
 @author: Indrek
 '''
-from models import Pangadokument, Pangakirje, Konto, Tehingutyyp, Kontokasutus, Vara, Varatehing, Pearaamat, Tehing, Kanne, Algsaldo
+from models import Pangadokument, Pangakirje, Konto, Tehingutyyp, Kontokasutus, Vara, Varatehing, Pearaamat, Tehing, Kanne, Algsaldo, date2str
 from datetime import datetime, date
 from varahaldur import VaraHaldur
+from django.utils.encoding import smart_unicode
 import re
 
 def nvl(x, v):
     return v if x is None else x
 
-def date2str(d):
-    return str(d.day)+'.'+str(d.month)+'.'+str(d.year)
+def date2smart_unicode(d):
+    return smart_unicode(d.day)+'.'+smart_unicode(d.month)+'.'+smart_unicode(d.year)
 
 class BankLoader:
     '''
@@ -93,7 +95,7 @@ class KontoLoader:
         if csv_file.closed:
             return False
         for k in ks:
-            csv_file.write(k.osa+';'+k.kontonumber+';'+k.nimetus.rstrip()+';'+k.valuuta+';'+nvl(k.pangakonto,'')+'\n')
+            csv_file.write(k.osa+';'+k.kontonumber+';'+k.nimetus.rstrip()+';'+k.valuuta+';'+nvl(k.pangakonto,'').rstrip()+'\n')
         csv_file.close()
         return True
 
@@ -142,7 +144,7 @@ class RuleLoader:
         if csv_file.closed:
             return False
         for tt in tts:
-            csv_file.write('TT;'+tt.kirjeldus+';'+str(tt.reatyyp)+';'+nvl(tt.tunnus,'')+';'+nvl(tt.triger,'').rstrip()+';'+str(tt.pk)+'\n')
+            csv_file.write('TT;'+tt.kirjeldus+';'+smart_unicode(tt.reatyyp)+';'+nvl(tt.tunnus,'')+';'+nvl(tt.triger,'').rstrip()+';'+smart_unicode(tt.pk)+'\n')
             kks = Kontokasutus.objects.all().filter(tehingutyyp=tt).order_by('on_deebet')
             for kk in kks:
                 csv_file.write('KK;'+kk.konto.kontonumber+';'+('D' if kk.on_deebet else 'K')+';'+nvl(kk.valem,'').rstrip()+'\n')
@@ -176,13 +178,13 @@ class AssetLoader:
                 r = l.split(';')
                 for i in range(len(r)):
                     r[i] = r[i].strip('\"')
-                print r
+                print r[12+delta], r[12+delta].decode('utf8')
                 if len(r) < 17: # vanemat tüüpi formaadiga fail
                     delta = 0
                 if r[0] == 'Tehingu ref.': # faili päis
                     pass
                 elif r[0].isdigit() and v_id >= 0: # tehingu kirje
-                    # print '>>> tehing'
+                    print '>>> tehing'
                     if float(r[13+delta]) != 0:
                         if re.search('\+',r[1]):
                             tyyp = 'O'
@@ -199,7 +201,7 @@ class AssetLoader:
                         summa = float(r[9+delta])
                         valuuta = r[10+delta]
                         kogus = float(r[13+delta])
-                        trec.append({'tüüp':tyyp, 'vkpv':vkpv, 'summa':summa, 'valuuta':valuuta, 'kogus':kogus})
+                        trec.append({u'tüüp':tyyp, 'vkpv':vkpv, 'summa':summa, 'valuuta':valuuta, 'kogus':kogus})
                         print ' * ', trec
                 elif r[0] == '' and r[12+delta] == 'Lõppsaldo' and v_id >= 0: # lõppsaldo
                     print '>>> lõpp ', vrec['algsaldo'], ' -> ', r[13+delta]
@@ -213,23 +215,23 @@ class AssetLoader:
                             add_vt = add_vt or t['vkpv'].year >= self.jooksev_aasta
                     if v_id == 0 and float(vrec['algsaldo']) == 0:
                         lyh = vrec['lyhend'] if vrec['lyhend'] != '' else '?'
-                        typ = vrec['tüüp'] if vrec['tüüp'] != '' else 'A'
+                        typ = vrec[u'tüüp'] if vrec[u'tüüp'] != '' else 'A'
                         v = Vara.objects.create(nimetus=vrec['nimetus'], vp_tyyp=typ, lyhend=lyh)
                         v_id = v.id
                         add_vt = True
                     print ' ** ', len(trec)
                     if add_vt: 
                         for t in trec:
-                            if t['tüüp'] == 'O':
+                            if t[u'tüüp'] == 'O':
                                 vh.buy(v.id, t['vkpv'], t['vkpv'], t['kogus'], t['summa'], t['valuuta'])   
-                            elif t['tüüp'] == 'M':
+                            elif t[u'tüüp'] == 'M':
                                 vh.sell(v.id, t['vkpv'], t['vkpv'], t['kogus'], t['summa'], t['valuuta'])
-                            elif t['tüüp'] == 'H':
+                            elif t[u'tüüp'] == 'H':
                                 vh.reprize(v.id, t['vkpv'], t['kogus'], t['summa'], t['valuuta'])
                     else:
                         print ' # Not added: ', vrec['nimetus']
                 elif r[12+delta] == 'Algsaldo': # vara nimetus ja algsaldo
-                    # print '>>> algus'
+                    print '>>> algus'
                     try:
                         trec = []
                         v = Vara.objects.get(nimetus=r[0])
@@ -240,10 +242,11 @@ class AssetLoader:
                             r[10] = v.lyhend
                         print ' # Found: ', r[0]
                     except:
-                        print ' # Not found: ', r[0]
-                        v = None
-                        v_id = -1
-                    vrec = {'nimetus':r[0], 'algsaldo':r[13+delta], 'id':v_id, 'tüüp':r[8], 'lyhend':r[10]}
+                        print ' # Not found, will create: ', r[0]
+                        v = Vara.objects.create(nimetus=r[0], vp_tyyp=r[8], lyhend=r[10])
+                        v_id = v.id
+                    vrec = {'nimetus':r[0], 'algsaldo':r[13+delta], 'id':v_id, u'tüüp':r[8], 'lyhend':r[10]}
+                    print vrec
                         
         return True
             
@@ -255,7 +258,7 @@ class AssetLoader:
         if csv_file.closed:
             return False
         for tt in tts:
-            csv_file.write(tt.nimetus+';;;;;;;;'+str(tt.vp_tyyp)+';;'+tt.lyhend+delta+';;Algsaldo;0;\n')
+            csv_file.write(tt.nimetus+';;;;;;;;'+smart_unicode(tt.vp_tyyp)+';;'+tt.lyhend+delta+';;Algsaldo;0;\n'.encode('utf8'))
             kks = Varatehing.objects.all().filter(vara=tt).order_by('vaartuspaev','-tyyp','-kogus')
             lk = None
             for kk in kks:
@@ -266,10 +269,10 @@ class AssetLoader:
                     tyyp = '-'
                 elif kk.tyyp == 'H':
                     tyyp = '%'
-                csv_file.write('123;'+tyyp+';'+str(kk.vaartuspaev.day)+'.'+str(kk.vaartuspaev.month)+'.'+str(kk.vaartuspaev.year)+
-                               delta+';;;;;;;'+str(kk.summa)+';'+kk.valuuta+';;;'+str(kk.kogus)+';\n')
+                csv_file.write('123;'+tyyp+';'+smart_unicode(kk.vaartuspaev.day)+'.'+smart_unicode(kk.vaartuspaev.month)+'.'+smart_unicode(kk.vaartuspaev.year)+
+                               delta+';;;;;;;'+smart_unicode(kk.summa)+';'+kk.valuuta+';;;'+smart_unicode(kk.kogus)+';\n'.encode('utf8'))
             if lk != None:
-                csv_file.write(delta+';;;;;;;;;;;;Lõppsaldo;'+str(lk.yldkogus)+';\n')
+                csv_file.write(delta+u';;;;;;;;;;;;Lõppsaldo;'+smart_unicode(lk.yldkogus)+';\n'.encode('utf8'))
         csv_file.close()
         return True
     
@@ -277,7 +280,7 @@ class AssetLoader:
         tts = Vara.objects.all().order_by('nimetus')
         if csv_file.closed:
             return False
-        csv_file.write('POLARDATA OÜ VARAD seisuga '+str(kpv.day)+'.'+str(kpv.month)+'.'+str(kpv.year)+'\n\n')
+        csv_file.write(u'POLARDATA OÜ VARAD seisuga '+smart_unicode(kpv.day)+'.'+smart_unicode(kpv.month)+'.'+smart_unicode(kpv.year)+'\n\n')
         tsh = 0
         tth = 0
         ash = 0
@@ -304,12 +307,12 @@ class AssetLoader:
                     elif tt.vp_tyyp == 'I':
                         ish += float(lk.soetushind)
                         ith += float(lk.turuhind)
-                    csv_file.write(tt.nimetus+'\t'+tt.vp_tyyp+'\t'+tt.lyhend+'\t'+str(lk.yldkogus)+'\t'+
-                                   str(lk.soetushind)+'\t'+str(lk.turuhind)+'\n')
-        csv_file.write('\nAktsiad:\t\t\t\t'+str(ash)+'\t'+str(ath)+'\n')
-        csv_file.write('Võlakirjad:\t\t\t\t'+str(vsh)+'\t'+str(vth)+'\n')
-        csv_file.write('Alt.inv.:\t\t\t\t'+str(ish)+'\t'+str(ith)+'\n')
-        csv_file.write('KOKKU:\t\t\t\t'+str(tsh)+'\t'+str(tth)+'\n')
+                    csv_file.write(tt.nimetus+'\t'+tt.vp_tyyp+'\t'+tt.lyhend+'\t'+smart_unicode(lk.yldkogus)+'\t'+
+                                   smart_unicode(lk.soetushind)+'\t'+smart_unicode(lk.turuhind)+'\n'.encode('utf8'))
+        csv_file.write(u'\nAktsiad:\t\t\t\t'+smart_unicode(ash)+'\t'+smart_unicode(ath)+'\n'.encode('utf8'))
+        csv_file.write(u'Võlakirjad:\t\t\t\t'+smart_unicode(vsh)+'\t'+smart_unicode(vth)+'\n'.encode('utf8'))
+        csv_file.write(u'Alt.inv.:\t\t\t\t'+smart_unicode(ish)+'\t'+smart_unicode(ith)+'\n'.encode('utf8'))
+        csv_file.write(u'KOKKU:\t\t\t\t'+smart_unicode(tsh)+'\t'+smart_unicode(tth)+'\n'.encode('utf8'))
 
         csv_file.close()
         return True
@@ -355,11 +358,11 @@ class LedgerLoader:
         if csv_file.closed:
             return False
         for t in ts:
-            csv_file.write('T;'+str(t.pearaamat.aasta)+';'+t.tehingutyyp.kirjeldus+';'+t.sisu+';'+
-                           date2str(t.tehingupaev)+';'+date2str(t.maksepaev)+';'+('M' if t.on_manual else 'A')+';\n')
+            csv_file.write('T;'+smart_unicode(t.pearaamat.aasta)+';'+t.tehingutyyp.kirjeldus+';'+t.sisu+';'+
+                           date2smart_unicode(t.tehingupaev)+';'+date2smart_unicode(t.maksepaev)+';'+('M' if t.on_manual else 'A')+';\n')
             ks = Kanne.objects.all().filter(tehing=t).order_by('on_deebet')
             for k in ks:
-                csv_file.write('K;'+k.konto.kontonumber+';'+('D' if k.on_deebet else 'K')+';'+str(k.summa)+';'+
+                csv_file.write('K;'+k.konto.kontonumber+';'+('D' if k.on_deebet else 'K')+';'+smart_unicode(k.summa)+';'+
                                ('M' if k.on_manual else 'A')+';\n')
         csv_file.close()
         return True
@@ -370,13 +373,13 @@ class LedgerLoader:
         ts = Tehing.objects.all().filter(pearaamat=pr).order_by('maksepaev')
         ks = Konto.objects.all()
         # päis
-        line = 'Kuupäev;Tehing;'
+        line = u'Kuupäev;Tehing;'
         for k in ks:
             if len(k.kontonumber) > 2:
                 line = line + 'D-'+k.kontonumber+ ';K-'+k.kontonumber+';'
         csv_file.write(line+'\n')
         # algsaldo
-        line = '1.1.'+str(pr.aasta)+';ALGSALDO;'
+        line = '1.1.'+smart_unicode(pr.aasta)+';ALGSALDO;'
         for k in ks:
             if len(k.kontonumber) > 2:
                 sk = 0
@@ -387,7 +390,7 @@ class LedgerLoader:
                         sd += float(kn.summa)
                     else:
                         sk += float(kn.summa)
-                line = line + str(round(sd,2)).replace('.', ',') + ';' + str(round(sk,2)).replace('.', ',') + ';'
+                line = line + smart_unicode(round(sd,2)).replace('.', ',') + ';' + smart_unicode(round(sk,2)).replace('.', ',') + ';'
         csv_file.write(line+'\n')
 
         # tehingud
@@ -396,7 +399,7 @@ class LedgerLoader:
         for t in ts:
             # vahesaldo
             if t.maksepaev >= ctrld:
-                line = date2str(ctrld)+';SALDO '+str(kuu-1)+'. kuu järel;'
+                line = date2str(ctrld)+';SALDO '+smart_unicode(kuu-1)+u'. kuu järel;'
                 for k in ks:
                     if len(k.kontonumber) > 2:
                         sk = 0
@@ -429,7 +432,7 @@ class LedgerLoader:
                             else:
                                 sd = abs(sld)
                                 sk = 0
-                        line = line + str(round(sd,2)).replace('.', ',') + ';' + str(round(sk,2)).replace('.', ',') + ';'
+                        line = line + smart_unicode(round(sd,2)).replace('.', ',') + ';' + smart_unicode(round(sk,2)).replace('.', ',') + ';'
                 csv_file.write(line+'\n')
                 if kuu < 12:
                     kuu += 1
@@ -437,7 +440,7 @@ class LedgerLoader:
                 else:
                     ctrld = date(pr.aasta+1, 1, 1)
             # tehing    
-            line = date2str(t.maksepaev)+';'+t.sisu+';'
+            line = date2str(t.maksepaev)+';'+smart_unicode(t.sisu)+';'
             for k in ks:
                 if len(k.kontonumber) > 2:
                     sk = 0
@@ -448,11 +451,11 @@ class LedgerLoader:
                             sd += float(kn.summa)
                         else:
                             sk += float(kn.summa)
-                    line = line + str(round(sd,2)).replace('.', ',') + ';' + str(round(sk,2)).replace('.', ',') + ';'
+                    line = line + smart_unicode(round(sd,2)).replace('.', ',') + ';' + smart_unicode(round(sk,2)).replace('.', ',') + ';'
                     
             csv_file.write(line+'\n')
         # lõppsaldo
-        line = '31.12.'+str(pr.aasta)+';LÕPPSALDO;'
+        line = '31.12.'+smart_unicode(pr.aasta)+u';LÕPPSALDO;'
         for k in ks:
             if len(k.kontonumber) > 2:
                 sk = 0
@@ -485,7 +488,7 @@ class LedgerLoader:
                     else:
                         sd = abs(sld)
                         sk = 0
-                line = line + str(round(sd,2)).replace('.', ',') + ';' + str(round(sk,2)).replace('.', ',') + ';'
+                line = line + smart_unicode(round(sd,2)).replace('.', ',') + ';' + smart_unicode(round(sk,2)).replace('.', ',') + ';'
         csv_file.write(line+'\n')
         csv_file.close()
         return True

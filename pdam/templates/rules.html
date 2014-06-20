@@ -24,8 +24,8 @@
 	      		<td>
                     <form action="/rule/do/" method="post">  {% csrf_token %}
 	      			    <input type="hidden" name="pk" value="{{r.id}}"/>
-	      			    <input type="image" name="action" value="Update" src="/icons/table_edit.png"/>
-                        <input type="image" name="action" value="Delete" src="/icons/table_delete.png"/>
+	      			    <input type="submit" name="action" value="Update"/>
+                        <input type="submit" name="action" value="Delete"/>
                     </form>
 	      		</td>
 	      	</tr>
@@ -36,7 +36,7 @@
 		  <td>
 		  	<form action="/rule/do/" method="post">  {% csrf_token %}
               <input type="hidden" name="pk" value=""/>
-		  	  <input type="image" name="action" value="Add" src="/icons/add.png"/>
+		  	  <input type="submit" name="action" value="Add"/>
 		  	</form>
 		  </td>
 		</tr>

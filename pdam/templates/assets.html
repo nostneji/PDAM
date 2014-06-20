@@ -17,7 +17,7 @@
 </tr>
 </TABLE>
 <!--
-     ({'Kpv': date2str(kpv)}, 
+     ({'Kpv': date2smart_unicode(kpv)}, 
                 [{'tyyp':'Aktsiad', 'sh':SH.get('A'), 'th':TH.get('A'), 'rs':RS.get('A')},
                        {'tyyp':'Võlakirjad', 'sh':SH.get('V'), 'th':TH.get('V'), 'rs':RS.get('V')},
                        {'tyyp':'Alt.investeeringud', 'sh':SH.get('I'), 'th':TH.get('I'), 'rs':RS.get('I')},
@@ -65,8 +65,8 @@
                 <td>
                     <form action="/assets/do/" method="post">  {% csrf_token %}
                         <input type="hidden" name="pk" value="{{r.id}}"/>
-                        <input type="image" name="action" value="Update" src="/icons/table_edit.png"/>
-                        <input type="image" name="action" value="Delete" src="/icons/table_delete.png"/>
+                        <input type="submit" name="action" value="Update" />
+                        <input type="submit" name="action" value="Delete" />
                     </form>
                 </td>
             </tr>
@@ -76,7 +76,7 @@
           <td></td>
           <td>
             <form action="/assets/do/" method="post">  {% csrf_token %}
-              <input type="image" name="action" value="Add" src="/icons/add.png"/>
+              <input type="submit" name="action" value="Add" />
             </form>
           </td>
         </tr>

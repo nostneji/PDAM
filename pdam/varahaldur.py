@@ -1,4 +1,5 @@
 # coding: utf-8
+
 '''
 Created on 26.06.2012
 
@@ -9,6 +10,8 @@ import re
 from currencies import Currency
 from decimal import *
 from datetime import date
+from django.utils.encoding import smart_unicode
+
 
 class VaraHaldur(object):
     '''
@@ -73,7 +76,7 @@ class VaraHaldur(object):
         return vp_cnt
     
     def analyse(self):
-        print '+++ Lühendite analüüs +++'
+        print u'+++ Lühendite analüüs +++'
         # otsime lühenditeta varadele lühendeid
         vs = Vara.objects.all().filter(lyhend='?')
         for v in vs:
@@ -289,14 +292,22 @@ class VaraHaldur(object):
         return
     
     def getEndCount(self, vara_id):
+        res = 0.0
         v = Vara.objects.get(id=vara_id)
-        vts = Varatehing.objects.all().filter(vara=v).order_by('-vaartuspaev','tyyp','kogus')
-        return float(vts[0].yldkogus)
+        if v:
+            vts = Varatehing.objects.all().filter(vara=v).order_by('-vaartuspaev','tyyp','kogus')
+            if len(vts) > 0:
+                res = float(vts[0].yldkogus)
+        return res
 
     def getLastDealYear(self, vara_id):
+        res = 0
         v = Vara.objects.get(id=vara_id)
-        vts = Varatehing.objects.all().filter(vara=v).order_by('-vaartuspaev')
-        return vts[0].vaartuspaev.year
+        if v:
+            vts = Varatehing.objects.all().filter(vara=v).order_by('-vaartuspaev')
+            if len(vts) > 0:
+                res = vts[0].vaartuspaev.year
+        return res
 
     def statusReport(self, kpv):
         vs = Vara.objects.all()
@@ -316,7 +327,7 @@ class VaraHaldur(object):
                     RS.update({v.vp_tyyp: RS.get(v.vp_tyyp) + float(l_vt.reserv)})
         return ({'Kpv': date2str(kpv)}, 
                 [{'tyyp':'Aktsiad', 'sh':SH.get('A'), 'th':TH.get('A'), 'rs':RS.get('A')},
-                       {'tyyp':'Võlakirjad', 'sh':SH.get('V'), 'th':TH.get('V'), 'rs':RS.get('V')},
+                       {'tyyp':u'Võlakirjad', 'sh':SH.get('V'), 'th':TH.get('V'), 'rs':RS.get('V')},
                        {'tyyp':'Alt.investeeringud', 'sh':SH.get('I'), 'th':TH.get('I'), 'rs':RS.get('I')},
                        {'tyyp':'KOKKU', 'sh':SH.get('A')+SH.get('V')+SH.get('I'), 
                         'th':TH.get('A')+TH.get('V')+TH.get('I'), 'rs':RS.get('A')+RS.get('V')+RS.get('I')}]
@@ -403,7 +414,7 @@ class VaraHaldur(object):
                 TH.update({v.vp_tyyp: TH.get(v.vp_tyyp) + float(l_vt.turuhind)})
                 RS.update({v.vp_tyyp: RS.get(v.vp_tyyp) + float(l_vt.reserv)})
         return (data, [{'tyyp':'Aktsiad', 'sh':SH.get('A'), 'th':TH.get('A'), 'rs':RS.get('A')},
-                       {'tyyp':'Võlakirjad', 'sh':SH.get('V'), 'th':TH.get('V'), 'rs':RS.get('V')},
+                       {'tyyp':u'Võlakirjad', 'sh':SH.get('V'), 'th':TH.get('V'), 'rs':RS.get('V')},
                        {'tyyp':'Alt.investeeringud', 'sh':SH.get('I'), 'th':TH.get('I'), 'rs':RS.get('I')},
                        {'tyyp':'KOKKU', 'sh':SH.get('A')+SH.get('V')+SH.get('I'), 
                         'th':TH.get('A')+TH.get('V')+TH.get('I'), 'rs':RS.get('A')+RS.get('V')+RS.get('I')},

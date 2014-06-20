@@ -48,9 +48,9 @@
             <td style="width:6%">
                 <form action="/ledger/" method="post">  {% csrf_token %}
                     <input type="hidden" name="deal_id" value="{{d.id}}" />
-                    <input type="image" name="action" value="Update" src="/icons/table_edit.png"/>
+                    <input type="submit" name="action" value="Update" style="background:url(/icons/table_edit.png) no-repeat;"/>
                     {% if not d.on_manual %}
-                    <input type="image" name="action" value="Delete" src="/icons/table_delete.png"/>
+                    <input type="submit" name="action" value="Delete" style="background:url(/icons/table_delete.png) no-repeat;"/>
                     {% endif %}
                 </form>
             </td>
@@ -61,7 +61,7 @@
           <td>
             <form action="/ledger/" method="post">  {% csrf_token %}
               <input type="hidden" name="pk" value="{{year}}"/>
-              <input type="image" name="action" value="Add" src="/icons/add.png"/>
+              <input type="submit" name="action" value="Add" style="background:url(/icons/add.png) no-repeat;"/>
             </form>
           </td>
         </tr>

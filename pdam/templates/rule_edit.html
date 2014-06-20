@@ -29,7 +29,7 @@
                     <form action="/ruleitems/do/" method="post">  {% csrf_token %}
                     	<input type="hidden" name="pk" value="{{pk}}" />
 	      			    <input type="hidden" name="ipk" value="{{i.id}}" />
-	      			    <input type="image" name="action" value="Update" src="/icons/table_edit.png"/>
+	      			    <input type="submit" name="action" value="Update" />
                     </form>
 	      		</td>
 	      	</tr>
@@ -38,7 +38,7 @@
 		<tr>
 			<form action="/ruleitems/do/" method="post">  {% csrf_token %}
 		      <td><input type="hidden" name="pk" value="{{pk}}" /></td>
-		      <td><input type="image" name="action" value="Add" src="/icons/add.png"/></td>
+		      <td><input type="submit" name="action" value="Add" /></td>
 		   </form>
 		</tr>
       </table>

@@ -1,10 +1,16 @@
 # Django settings for FormTest project.
 
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+ALLOWED_HOSTS = []
+
 ADMINS = (
-    ('Indrek Jentson', 'ij@isiklik.net'),
+    ('Indrek Jentson', 'indrek.jentson@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -13,9 +19,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'postgres',                      # Or path to database file if using sqlite3.
-        'USER': 'aptana',                      # Not used with sqlite3.
-        'PASSWORD': 'aptana2bart',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'USER': 'pdam',                      # Not used with sqlite3.
+        'PASSWORD': 'pdam2pdvm',                  # Not used with sqlite3.
+        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -38,7 +44,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'UTC+02:00'
+TIME_ZONE = None
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -83,8 +89,8 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    "c:/Users/Indrek/Documents/Aptana Studio 3 Workspace/PDAM/PDAM/pdam/icons/",
-    "c:/Users/Indrek/Documents/Aptana Studio 3 Workspace/PDAM/PDAM/pdam/css3menu/",
+    BASE_DIR + '/PDAM/pdam/icons/',
+    BASE_DIR + '/PDAM/pdam/css3menu/',
 )
 
 # List of finder classes that know how to find static files in
@@ -113,17 +119,17 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'PDAM.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    "c:/Users/Indrek/Documents/Aptana Studio 3 Workspace/PDAM/PDAM/pdam/templates/",
+    BASE_DIR + '/PDAM/pdam/templates/',
 )
 
 INSTALLED_APPS = (
-    'pdam',
+    'PDAM.pdam',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -131,7 +137,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

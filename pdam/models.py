@@ -2,19 +2,20 @@
 from django.forms import *
 from django.db import models
 from django.db.models import Sum
+from django.utils.encoding import smart_unicode
 
 def nvl(x, v):
     return v if x is None else x
 
 def date2str(d):
-    return str(d.day)+'.'+str(d.month)+'.'+str(d.year)
+    return smart_unicode(d.day)+'.'+smart_unicode(d.month)+'.'+smart_unicode(d.year)
 
 class Pangadokument (models.Model):
     import_aeg = models.DateTimeField()
     failinimi = models.FilePathField()
     
-    def __str__(self):
-        return str(self.failinimi)
+    def __unicode__(self):
+        return smart_unicode(self.failinimi)
 
 class PangadokumentForm (ModelForm):
     class Meta:
@@ -35,8 +36,8 @@ class Konto (models.Model):
     class Meta:
         ordering = ['kontonumber']
         
-    def __str__(self):
-        return self.osa + '.' + self.kontonumber + ':' + self.nimetus
+    def __unicode__(self):
+        return smart_unicode(self.osa + '.' + self.kontonumber + ':' + self.nimetus)
 
 class KontoForm (ModelForm):
     class Meta:
@@ -48,8 +49,8 @@ class Tehingutyyp (models.Model):
     tunnus = models.CharField(max_length=10, blank=True, null=True)
     triger = models.CharField(max_length=255, blank=True, null=True) # reg exp
 
-    def __str__(self):
-        return self.kirjeldus
+    def __unicode__(self):
+        return smart_unicode(self.kirjeldus)
     
     
 class TehingutyypForm (ModelForm):
@@ -90,8 +91,8 @@ class Pearaamat (models.Model):
     aasta = models.SmallIntegerField()
     on_avatud = models.BooleanField()
     
-    def __str__(self):
-        return str(self.aasta)
+    def __unicode__(self):
+        return smart_unicode(self.aasta)
     
 class Algsaldo (models.Model):
     pearaamat = models.ForeignKey(Pearaamat)
@@ -117,8 +118,8 @@ class Tehing (models.Model):
     class Meta:
         ordering = ['maksepaev']
 
-    def __str__(self):
-        return str(date2str(self.maksepaev)+' '+self.sisu[0:20])
+    def __unicode__(self):
+        return smart_unicode(date2str(self.maksepaev)+' '+self.sisu[0:20])
     
 class TehingForm (ModelForm):
     class Meta:
@@ -131,8 +132,8 @@ class Kanne (models.Model):
     summa = models.DecimalField(max_digits=16, decimal_places=2)
     on_manual = models.BooleanField()
 
-    def __str__(self):
-        return ('D' if self.on_deebet else 'K')+self.konto.kontonumber+':'+str(self.summa)
+    def __unicode__(self):
+        return ('D' if self.on_deebet else 'K')+self.konto.kontonumber+':'+smart_unicode(self.summa)
     
 class KanneForm (ModelForm):
     class Meta:
@@ -159,8 +160,12 @@ class Pangakirje (models.Model):
     allikas = models.ForeignKey(Pangadokument)
     tehing = models.ForeignKey(Tehing, blank=True, null=True)
 
-    def __str__(self):
-        return self.pangakonto+';'+str(self.kuupaev)+';'+self.deebet+';'+self.summa+';'+self.valuuta+';'+self.selgitus+';'+self.arvestatud
+    def __unicode__(self):
+        return self.pangakonto+';'+smart_unicode(self.kuupaev)+';'+self.deebet+';'+self.summa+';'+self.valuuta+';'+smart_unicode(self.selgitus)+';'+self.arvestatud
+    
+    def json(self):
+        return {'pangakonto':self.pangakonto,'kuupaev':smart_unicode(self.kuupaev), 'deebet':self.deebet, 'summa':self.summa, 'valuuta':self.valuuta,
+                'selgitus':smart_unicode(self.selgitus), 'arvestatud':self.arvestatud}
 
 class PangakirjeForm (ModelForm):
     class Meta:
@@ -176,8 +181,8 @@ class Vara (models.Model):
     vp_tyyp = models.CharField(max_length=1, choices=tyybid)
     lyhend = models.CharField(max_length=20)
         
-    def __str__(self):
-        return self.nimetus+' ('+self.lyhend+')'
+    def __unicode__(self):
+        return smart_unicode(self.nimetus+' ('+self.lyhend+')')
 
 class VaraForm (ModelForm):
     class Meta:
@@ -207,8 +212,8 @@ class Varatehing (models.Model):
     reserv = models.DecimalField(max_digits=16, decimal_places=2)
     tehing_id = models.IntegerField(blank=True, null=True)
     
-    def __str__(self):
-        return self.vara.nimetus+';'+self.tyyp+';'+str(self.vaartuspaev)+';'+str(self.kogus)+';'+str(self.summa)+';'+self.valuuta+';'+str(self.eur_summa)+';'+str(self.yldkogus)+';'+str(self.soetushind)+';'+str(self.turuhind)+';'+str(self.reserv)
+    def __unicode__(self):
+        return self.vara.nimetus+';'+self.tyyp+';'+smart_unicode(self.vaartuspaev)+';'+smart_unicode(self.kogus)+';'+smart_unicode(self.summa)+';'+self.valuuta+';'+smart_unicode(self.eur_summa)+';'+smart_unicode(self.yldkogus)+';'+smart_unicode(self.soetushind)+';'+smart_unicode(self.turuhind)+';'+smart_unicode(self.reserv)
 
 class VaratehingForm (ModelForm):
     class Meta:

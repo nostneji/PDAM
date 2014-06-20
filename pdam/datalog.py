@@ -5,6 +5,7 @@ Created on 02.07.2012
 @author: Indrek
 '''
 from datetime import datetime, time
+from django.utils.encoding import smart_unicode
 
 class Datalog(object):
     '''
@@ -25,7 +26,7 @@ class Datalog(object):
     
     def add(self, typ, text):
         t = datetime.now()
-        s = str(t.hour)+':'+str(t.minute)+':'+str(t.second)+'.'+str(t.microsecond)
+        s = smart_unicode(t.hour)+':'+smart_unicode(t.minute)+':'+smart_unicode(t.second)+'.'+smart_unicode(t.microsecond)
         self.log.append((s, typ, text))
         if self.file != None:
             self.file.write(s+';'+typ+';'+text+'\n')

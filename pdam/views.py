@@ -1,20 +1,20 @@
 # coding: utf-8
+
 from datetime import *
 from dateutil.relativedelta import relativedelta
-from FormTest.formtest.models import *
-from FormTest.formtest.loader import BankLoader, KontoLoader, RuleLoader, AssetLoader, LedgerLoader
-from FormTest.formtest.deals import *
+from PDAM.pdam.models import *
+from PDAM.pdam.loader import BankLoader, KontoLoader, RuleLoader, AssetLoader, LedgerLoader
+from PDAM.pdam.deals import *
 from django.template import Context, RequestContext
-#from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.core.files import File
 from django.db import transaction
 from django.db.models import Q
 from operator import attrgetter
 from datalog import Datalog
+from django.utils.encoding import smart_unicode
 import re
-
-#import json
+import codecs
 
 def home(request):
     context = Context({})
@@ -92,7 +92,7 @@ def konto_action_handler(request):
     context = {}
     if request.method == 'POST':
         if request.POST.has_key('action'):
-            if request.POST['action'] == 'Loe kontoplaan':
+            if request.POST['action'] == u'Loe kontoplaan':
                 request.encoding = 'utf-8'
                 if request.FILES.has_key('cvs'):
                     wf = request.FILES['cvs']
@@ -101,8 +101,8 @@ def konto_action_handler(request):
                     kl.import_kontoplaan(f)
                 go_home = True
                 
-            elif request.POST['action'] == 'Kirjuta kontoplaan faili':
-                f = open("/kontoplaan.csv","w")
+            elif request.POST['action'] == u'Kirjuta kontoplaan faili':
+                f = codecs.open('kontoplaan.csv', mode="w", encoding="utf8")
                 kl = KontoLoader()
                 if kl.export_kontoplaan(f):
                     f.close()
@@ -127,7 +127,7 @@ def rule_action_handler(request):
     count = 0
     context = {'icount': count}
     if request.method == 'POST' and request.POST.has_key('action'):
-        if request.POST['action'] == 'Loe reeglid':
+        if request.POST['action'] == u'Loe reeglid':
             request.encoding = 'utf-8'
             if request.FILES.has_key('cvs'):
                 wf = request.FILES['cvs']
@@ -135,8 +135,8 @@ def rule_action_handler(request):
                 kl = RuleLoader()
                 kl.import_rules(f)
             go_home = True
-        elif request.POST['action'] == 'Kirjuta reeglid faili':
-            f = open("/rules.csv","w")
+        elif request.POST['action'] == u'Kirjuta reeglid faili':
+            f = codecs.open('rules.csv', mode="w", encoding="utf8")
             kl = RuleLoader()
             if kl.export_rules(f):
                 f.close()
@@ -226,7 +226,7 @@ def ritems_action_handler(request):
 
 def process(request):
     print 'Processing transactions ...'
-    LOG = Datalog('\process.log')
+    LOG = Datalog('process.log')
     docs = Pangadokument.objects.all().order_by('import_aeg')
     for doc in docs:
         LOG.info('Pangadokument: '+doc.failinimi)
@@ -250,30 +250,32 @@ def process(request):
 
 @transaction.commit_on_success
 def ledgers(request):
+    print '* Ledgers', request.method, request.POST.keys()
     template = 'ledger.html'
     prs = Pearaamat.objects.all().order_by('aasta')
     pr_count = prs.count()
-    if request.POST.has_key('year'):
-        pr = Pearaamat.objects.get(aasta=request.POST['year'])
+    if request.POST.has_key(u'year'):
+        pr = Pearaamat.objects.get(aasta=request.POST[u'year'])
     else:
         pr = prs.reverse()[:1][0]
-    if request.method == 'POST' and request.POST.has_key('action'):
-        if request.POST['action'] == 'Loe tehingud':
+    if request.method == u'POST' and request.POST.has_key(u'action'):
+        print '* Ledgers/Action: ',request.POST[u'action']
+        if request.POST['action'] == u'Loe tehingud':
             request.encoding = 'utf-8'
             if request.FILES.has_key('cvs'):
                 wf = request.FILES['cvs']
                 f = File(wf)
                 kl = LedgerLoader()
                 kl.import_ledger(f)
-        elif request.POST['action'] == 'Kirjuta tehingud faili':
-            f = open("/ledger.csv","w")
+        elif request.POST['action'] == u'Kirjuta tehingud faili':
+            f = codecs.open('ledger.csv', mode="w", encoding="utf8")
             kl = LedgerLoader()
             kl.export_ledger(f)
-            f = open("/ledgertable.csv","w")
+            f = codecs.open('ledgertable.csv', mode="w", encoding="utf8")
             kl.export_ledger_table(f, pr)
-        elif request.POST['action'] == 'Tulude-Kulude sulgemine':
+        elif request.POST['action'] == u'Tulude-Kulude sulgemine':
             tuluKuluSulgemine(pr)
-        elif request.POST['action'] == 'A-tehingute kustutamine':
+        elif request.POST['action'] == u'A-tehingute kustutamine':
             deals = Tehing.objects.all().filter(pearaamat=pr, on_manual=False)
             for d in deals:
                 pts = Pangakirje.objects.all().filter(tehing=d)
@@ -283,7 +285,7 @@ def ledgers(request):
                     pt.save()
                 Kanne.objects.all().filter(tehing=d).delete()
                 d.delete()
-        elif request.POST['action'] == 'Aasta lõpetamine':
+        elif request.POST['action'] == u'Aasta lõpetamine':
             aastaSulgemine(pr)
         elif request.POST['action'] in ('Algsaldo', 'Cancel'):
             template = 'saldo.html'
@@ -293,7 +295,7 @@ def ledgers(request):
             rp = RP_korras(pr)
             context = {'form': form, 'pk': pr.id, 'items': items, 'icount': icount, 'rp': rp, 'year': pr.aasta}
             return render_to_response(template, context, context_instance=RequestContext(request))
-        elif request.POST['action'] == 'SaldoUpdate':
+        elif request.POST['action'] == u'SaldoUpdate':
             template = 'saldo.html'
             S = Algsaldo.objects.get(pk=request.POST['ipk'])
             form = AlgsaldoForm(instance=S)
@@ -302,7 +304,7 @@ def ledgers(request):
             rp = RP_korras(pr)
             context = {'form': form, 'pk': pr.id, 'items': items, 'icount': icount, 'rp': rp, 'year': pr.aasta, 'ipk': S.id}
             return render_to_response(template, context, context_instance=RequestContext(request))
-        elif request.POST['action'] == 'Save':
+        elif request.POST['action'] == u'Save':
             template = 'saldo.html'
             if request.POST.has_key('ipk') and request.POST['ipk'] != '':
                 S = Algsaldo.objects.get(pk=request.POST['ipk'])
@@ -319,7 +321,7 @@ def ledgers(request):
             rp = RP_korras(pr)
             context = {'form': form, 'pk': pr.id, 'items': items, 'icount': icount, 'rp': rp, 'year': pr.aasta}
             return render_to_response(template, context, context_instance=RequestContext(request))
-        elif request.POST['action'] == 'Delete':
+        elif request.POST['action'] == u'Delete':
             T = Tehing.objects.get(pk=request.POST['deal_id'])
             if not T.on_manual:
                 pts = Pangakirje.objects.all().filter(tehing=T)
@@ -329,7 +331,7 @@ def ledgers(request):
                     pt.save()
                 Kanne.objects.all().filter(tehing=T).delete()
                 T.delete()
-        elif request.POST['action'] == 'Update':
+        elif request.POST['action'] == u'Update':
             T = Tehing.objects.get(pk=request.POST['deal_id'])
             form = TehingForm(instance=T)
             items = Kanne.objects.all().filter(tehing=T).order_by('konto__kontonumber')
@@ -338,7 +340,7 @@ def ledgers(request):
             rp = RP_korras(T)
             context = {'form': form, 'pk': T.id, 'items': items, 'icount': icount, 'rp': rp, 'btrs': btrs}
             return render_to_response('deal.html', context, context_instance=RequestContext(request))
-        elif request.POST['action'] == 'Add':
+        elif request.POST['action'] == u'Add':
             form = TehingForm()
             rp = {'Aktiva':0, 'Passiva':0, 'Tulud':0, 'Kulud':0, 'RP':0}
             context = {'form': form, 'items': [], 'icount': 0, 'rp': rp, 'btrs': []}
@@ -373,7 +375,10 @@ def ledger_action_handler(request):
                 form.save()
             else:
                 print 'Form is not valid!',form.errors
-                items = Kanne.objects.all().filter(tehing=deal)
+                if deal:
+                    items = Kanne.objects.all().filter(tehing=deal)
+                else:
+                    items = []
                 icount = items.count()
                 context = {'form': form, 'pk': pk, 'items': items, 'icount': icount}
                 return render_to_response('deal.html', context, context_instance=RequestContext(request))
@@ -450,28 +455,28 @@ def asset_action_handler(request):
             if request.FILES.has_key('cvs'):
                 request.encoding = 'utf-8'
                 wf = request.FILES['cvs']
-                f = File(wf)
+                f = codecs.EncodedFile(File(wf), 'utf8')
                 kl = AssetLoader()
                 kl.setYear(pr.aasta)
                 kl.import_assets(f)
             go_home = True
         elif request.POST['action'] == 'Kirjuta varad faili':
-            f = open("/assets.csv","w")
+            f = codecs.open('assets.txt', mode="w", encoding="utf8")
             kl = AssetLoader()
             if kl.export_assets(date(pr.aasta, 12, 31), f):
                 f.close()
-            f = open("/assetdeals.csv","w")
+            f = codecs.open('assetdeals.csv', mode="w", encoding="utf8")
             kl = AssetLoader()
             if kl.export_assetdeals(f):
                 f.close()
             go_home = True
-        elif request.POST['action'] == 'Kustuta tehingud':
+        elif request.POST['action'] == u'Kustuta tehingud':
             Varatehing.objects.all().delete()
             go_home = True
-        elif request.POST['action'] == 'Kustuta varad':
+        elif request.POST['action'] == u'Kustuta varad':
             Vara.objects.all().delete()
             go_home = True
-        elif request.POST['action'] == 'Ümberarvutus':
+        elif request.POST['action'] == u'Ümberarvutus':
             vh = VaraHaldur()
             vh.analyse()
             vs = Vara.objects.all()
@@ -656,7 +661,7 @@ def reports(request):
             context = Context({'prs':prs, 'pr_count':pr_count, 'year':pr.aasta, 'rva':rva })
             return render_to_response('reports_rva.html', context, context_instance=RequestContext(request))
     elif request.POST.has_key('action'):
-        if request.POST['action'] == 'Kustuta erinevustega tehingud':
+        if request.POST['action'] == u'Kustuta erinevustega tehingud':
             prs = Pearaamat.objects.all().order_by('aasta')
             pr_count = prs.count()
             if request.POST.has_key('year'):
@@ -685,7 +690,7 @@ def reports(request):
                             u.tehing_id = None
                             u.save()
                         T.delete()
-        if request.POST['action'] == 'Genereeri ümberhindlused':
+        if request.POST['action'] == u'Genereeri ümberhindlused':
             prs = Pearaamat.objects.all().order_by('aasta')
             pr_count = prs.count()
             if request.POST.has_key('year'):
@@ -700,15 +705,15 @@ def reports(request):
                 if vt.tyyp == 'H':
                     dr = vh.getReservDiff(vt.vara.id, lkpv)
                     if dr != 0:
-                        tt = Tehingutyyp.objects.get(kirjeldus='Käsitsi sisestatud tehing')
+                        tt = Tehingutyyp.objects.get(kirjeldus=u'Käsitsi sisestatud tehing')
                         if vt.vara.vp_tyyp == 'A':
-                            l_sisu = 'Aktsia ümberhindamine '
+                            l_sisu = u'Aktsia ümberhindamine '
                             l_konto = '117'
                         elif vt.vara.vp_tyyp == 'V':
-                            l_sisu = 'Võlakirja ümberhindamine '
+                            l_sisu = u'Võlakirja ümberhindamine '
                             l_konto = '118'
                         elif vt.vara.vp_tyyp == 'I':
-                            l_sisu = 'Alt.investeeringu ümberhindamine '
+                            l_sisu = u'Alt.investeeringu ümberhindamine '
                             l_konto = '1191'
                         l_sisu = l_sisu + '(' + vt.vara.nimetus + ')'
                         t = Tehing.objects.create(pearaamat=pr, tehingutyyp=tt, sisu=l_sisu, tehingupaev=lkpv, maksepaev=lkpv, on_manual=True)
@@ -729,15 +734,15 @@ def reports(request):
             print '..2 vtx.length = ', len(vtx)
             for vt in vtx:
                 if vt.tyyp == 'H':
-                    tt = Tehingutyyp.objects.get(kirjeldus='Käsitsi sisestatud tehing')
+                    tt = Tehingutyyp.objects.get(kirjeldus=u'Käsitsi sisestatud tehing')
                     if vt.vara.vp_tyyp == 'A':
-                        l_sisu = 'Aktsia ümberhindamine '
+                        l_sisu = u'Aktsia ümberhindamine '
                         l_konto = '117'
                     elif vt.vara.vp_tyyp == 'V':
-                        l_sisu = 'Võlakirja ümberhindamine '
+                        l_sisu = u'Võlakirja ümberhindamine '
                         l_konto = '118'
                     elif vt.vara.vp_tyyp == 'I':
-                        l_sisu = 'Alt.investeeringu ümberhindamine '
+                        l_sisu = u'Alt.investeeringu ümberhindamine '
                         l_konto = '1191'
                     l_sisu = l_sisu + '(' + vt.vara.nimetus + ')'
                     t = Tehing.objects.all().filter(pearaamat=pr, tehingutyyp=tt, sisu=l_sisu, tehingupaev=lkpv, maksepaev=lkpv, on_manual=True)

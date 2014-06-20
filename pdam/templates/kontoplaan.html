@@ -4,31 +4,32 @@
 
 <TABLE width="100%">
 <tr>	
-	<td>
-	  <form action="/kontod/do/" method="post" enctype="multipart/form-data" accept-charset="utf-8"> {% csrf_token %}
-        <input type="file" name="cvs"/>
-        <input type="submit" name="action" value="Loe kontoplaan" />
-        <input type="submit" name="action" value="Kirjuta kontoplaan faili" />
+   <td>
+      <form action="/kontod/do/" method="post" enctype="multipart/form-data" accept-charset="utf-8"> {% csrf_token %}
+         <input type="file" name="cvs"/>
+         <input type="submit" name="action" value="Loe kontoplaan" />
+         <input type="submit" name="action" value="Kirjuta kontoplaan faili" />
       </form>
-    </td>
+   </td>
 </tr>
-<tr>	
-	<td>Kontoplaan</td>
+<tr> 
+   <td>Kontoplaan</td>
 </tr><TR>
-	<TD>
-	  <form action="/kontod/do/" method="post">  {% csrf_token %}
-      <table id="transactions">
-      	{% for r in rows %}
-      	<tr class="{% cycle 'alt' 'norm' %}">
-      		<td>{{r.osa}}</td>
-      		<td>{{r.kontonumber}}</td>
-      		<td>{{r.nimetus}}</td>
-            <td>{{r.valuuta}}</td>
-      	</tr>
-        {% endfor %}
-      </table>
-	  </form>
-	</TD>
+   <TD>
+      <form action="/kontod/do/" method="post">  {% csrf_token %}
+         <table id="transactions">
+      	 {% for r in rows %}
+      	    <tr class="{% cycle 'alt' 'norm' %}">
+      	       <td>{{r.osa}}</td>
+      	       <td>{{r.kontonumber}}</td>
+      	       <td>{{r.nimetus}}</td>
+               <td>{{r.pangakonto}}</td>
+               <td>{{r.valuuta}}</td>
+      	    </tr>
+         {% endfor %}
+         </table>
+      </form>
+   </TD>
 </TR>
 </TABLE>
 

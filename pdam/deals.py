@@ -1,4 +1,5 @@
 # coding: utf-8
+
 '''
 Created on 20.06.2012
 
@@ -12,7 +13,10 @@ from django.db.models import Sum
 from decimal import Decimal
 from varahaldur import VaraHaldur
 from datalog import Datalog
+from django.utils.encoding import smart_unicode
 import re
+import codecs
+import ast
 
 def nvl(x, v):
     return v if x is None else x
@@ -199,26 +203,26 @@ def tuluKuluSulgemine(pr):
     return
 
 def kasumiAruanne(pr):
-    skeem1 = (('  Müügitulu', 'I', '31'),
-              ('  Muud äritulud', 'I', '32', '34'),
-              (' Tulud kokku', 'S', '31', '32', '34'),
-              ('  Kaubad, toore, materjal, teenused', 'I', '41'),
-              ('  Mitmesugused tegevuskulud', 'I', '42'),
-              ('  Tööjõu kulud', 'I', '43'),
-              ('  Põhivara kulum', 'I', '44'),
-              ('  Muud ärikulud', 'I', '45', '47'),
-              (' Kulud kokku', 'S', '41', '42', '43', '44', '45', '47'),
-              ('Ärikasum (-kahjum)', 'T', '31', '32', '34', '41', '42', '43', '44', '45', '47'),
-              (' Finantstulud ja -kulud', 'S', '33', '46'),
-              ('Kasum (kahjum) enne tulumaksustamist', 'T', '31', '32', '34', '41', '42', '43', '44', '45', '47', '33', '46'),
-              ('Aruandeaasta kasum (kahjum)', 'T', '31', '32', '34', '41', '42', '43', '44', '45', '47', '33', '46'),
+    skeem1 = ((u'  Müügitulu', 'I', '31'),
+              (u'  Muud äritulud', 'I', '32', '34'),
+              (u' Tulud kokku', 'S', '31', '32', '34'),
+              (u'  Kaubad, toore, materjal, teenused', 'I', '41'),
+              (u'  Mitmesugused tegevuskulud', 'I', '42'),
+              (u'  Tööjõu kulud', 'I', '43'),
+              (u'  Põhivara kulum', 'I', '44'),
+              (u'  Muud ärikulud', 'I', '45', '47'),
+              (u' Kulud kokku', 'S', '41', '42', '43', '44', '45', '47'),
+              (u'Ärikasum (-kahjum)', 'T', '31', '32', '34', '41', '42', '43', '44', '45', '47'),
+              (u' Finantstulud ja -kulud', 'S', '33', '46'),
+              (u'Kasum (kahjum) enne tulumaksustamist', 'T', '31', '32', '34', '41', '42', '43', '44', '45', '47', '33', '46'),
+              (u'Aruandeaasta kasum (kahjum)', 'T', '31', '32', '34', '41', '42', '43', '44', '45', '47', '33', '46'),
               )
-    fin = (('Intressitulud','I','337'),
-           ('Kasum (kahjum) valuutakursi muutustest', 'I', '3361', '4661'),
-           ('Muud finantstulud ja -kulud', 'I', '3351','3352','339','468','469'),
-           ('Väärtpaberite müügikasum', 'I', '338'),
-           ('Väärtpaberite müügikahjum', 'I', '467'), 
-           ('Kokku finantstulud ja -kulud', 'T', '337', '3361', '4661', '3351','3352','339','468','469', '338', '467')
+    fin = ((u'Intressitulud','I','337'),
+           (u'Kasum (kahjum) valuutakursi muutustest', 'I', '3361', '4661'),
+           (u'Muud finantstulud ja -kulud', 'I', '3351','3352','339','468','469'),
+           (u'Väärtpaberite müügikasum', 'I', '338'),
+           (u'Väärtpaberite müügikahjum', 'I', '467'), 
+           (u'Kokku finantstulud ja -kulud', 'T', '337', '3361', '4661', '3351','3352','339','468','469', '338', '467')
            )    
     akpv = date(pr.aasta, 1, 1)
     lkpv = date(pr.aasta, 12, 31)
@@ -290,26 +294,26 @@ def kasumiAruanne(pr):
     return (kas, ftk, tot)
     
 def rahavoogudeAruanne(pr):
-    sk = (('Väljamaksed tarnijatele kaupade ja teenuste eest','I', '#a', '41' ),
-          ('Väljamaksed töötajatele','I', '#b', '4311'),
-          ('Muud rahavood äritegevusest','I', '#c','4321','4322','4323','4324','4325','4351','4353','4355'),
-          ('Kokku rahavood äritegevusest','S', '#d','41','43'),
-          ('Tasutud muude finantsinvesteeringute soetamisel','I', '#e','?OstSum'),
-          ('Laekunud muude finantsinvesteeringute müügist','I', '#f','?MyykSum'),
-          ('Laekunud intressid','I', '#g','337'),
-          ('Laekunud dividendid','I', '#h','3352'),
-          ('Muud laekumised investeerimistegevusest','I', '#u','339' ),
-          ('Muud väljamaksed investeerimistegevusest','I', '#i','4264','469' ),
-          ('Kokku rahavood investeerimistegevusest','S', '#j', ':e',':f',':g',':h',':i',':u'),
-          ('Saadud laenud','I', '#k', '?K251'),
-          ('Saadud laenude tagasimaksed','I', '#l', '?D251'),
-          ('Kokku rahavood finantseerimistegevusest','S', '#m', ':k', ':l'),
-          ('Kokku rahavood','T', '#n', ':d', ':j', ':m'),
-          ('Raha ja raha ekvivalendid perioodi alguses','I', '#o', '?A1131', '?A1132', '?A1133','?A115'),
-          ('Valuutakursside muutuste mõju','I', '#r', '3361', '4661'),
-          ('Raha ja raha ekvivalentide muutus','T', '#p', '1131', '1132', '1133', '115', ':r-'),
-          ('Raha ja raha ekvivalendid perioodi lõpus','I', '#s', ':o', ':p', ':r' ),
-          ('Kontroll: rahavood vs raha muutus','I', '#t', ':n', ':p-')
+    sk = ((u'Väljamaksed tarnijatele kaupade ja teenuste eest','I', '#a', '41' ),
+          (u'Väljamaksed töötajatele','I', '#b', '4311'),
+          (u'Muud rahavood äritegevusest','I', '#c','4321','4322','4323','4324','4325','4351','4353','4355'),
+          (u'Kokku rahavood äritegevusest','S', '#d','41','43'),
+          (u'Tasutud muude finantsinvesteeringute soetamisel','I', '#e','?OstSum'),
+          (u'Laekunud muude finantsinvesteeringute müügist','I', '#f','?MyykSum'),
+          (u'Laekunud intressid','I', '#g','337'),
+          (u'Laekunud dividendid','I', '#h','3352'),
+          (u'Muud laekumised investeerimistegevusest','I', '#u','339' ),
+          (u'Muud väljamaksed investeerimistegevusest','I', '#i','4264','469' ),
+          (u'Kokku rahavood investeerimistegevusest','S', '#j', ':e',':f',':g',':h',':i',':u'),
+          (u'Saadud laenud','I', '#k', '?K251'),
+          (u'Saadud laenude tagasimaksed','I', '#l', '?D251'),
+          (u'Kokku rahavood finantseerimistegevusest','S', '#m', ':k', ':l'),
+          (u'Kokku rahavood','T', '#n', ':d', ':j', ':m'),
+          (u'Raha ja raha ekvivalendid perioodi alguses','I', '#o', '?A1131', '?A1132', '?A1133','?A115'),
+          (u'Valuutakursside muutuste mõju','I', '#r', '3361', '4661'),
+          (u'Raha ja raha ekvivalentide muutus','T', '#p', '1131', '1132', '1133', '115', ':r-'),
+          (u'Raha ja raha ekvivalendid perioodi lõpus','I', '#s', ':o', ':p', ':r' ),
+          (u'Kontroll: rahavood vs raha muutus','I', '#t', ':n', ':p-')
           )
     akpv = date(pr.aasta, 1, 1)
     lkpv = date(pr.aasta, 12, 31)
@@ -379,13 +383,13 @@ def rahavoogudeAruanne(pr):
         for s in r[3:]:
             if s[0] == '?': # function
                 if s == '?OstSum':
-                    tt = Tehingutyyp.objects.get(kirjeldus='Väärtpaberi ostmine')
+                    tt = Tehingutyyp.objects.get(kirjeldus=u'Väärtpaberi ostmine')
                     for kn in ('1132','115'):
                         kt = Konto.objects.get(pk=kn)
                         ks = Kanne.objects.all().filter(konto=kt, tehing__tehingutyyp=tt, tehing__maksepaev__gte=akpv, tehing__maksepaev__lte=lkpv, on_deebet=False).aggregate(Sum('summa'))['summa__sum']
                         r_sum += float(nvl(ks, 0) * (-1 if kt.osa in ('A', 'K') else 1))
                 elif s == '?MyykSum':
-                    tt = Tehingutyyp.objects.get(kirjeldus='Väärtpaberi müümine')
+                    tt = Tehingutyyp.objects.get(kirjeldus=u'Väärtpaberi müümine')
                     for kn in ('1132','115'):
                         kt = Konto.objects.get(pk=kn)
                         ks = Kanne.objects.all().filter(konto=kt, tehing__tehingutyyp=tt, tehing__maksepaev__gte=akpv, tehing__maksepaev__lte=lkpv, on_deebet=True).aggregate(Sum('summa'))['summa__sum']
@@ -629,7 +633,7 @@ class Calc(object):
                             f['VAL'] = self.recvars[f['NAME']][0]
                         elif self.realnames[f['NAME']][1] == 'd':
                             d = self.recvars[f['NAME']][0]
-                            f['VAL'] = 'date('+str(d.year)+','+str(d.month)+','+str(d.day)+')'
+                            f['VAL'] = 'date('+smart_unicode(d.year)+','+smart_unicode(d.month)+','+smart_unicode(d.day)+')'
             elif t == '#':
                 f['SYM'] = 'ALT'
                 if not self.realnames.has_key(f['NAME']):
@@ -643,7 +647,7 @@ class Calc(object):
                             f['VAL'] = self.qryvars[f['NAME']][0]
                         elif self.realnames[f['NAME']][1] == 'd':
                             d = self.qryvars[f['NAME']][0]
-                            f['VAL'] = 'date('+str(d.year)+','+str(d.month)+','+str(d.day)+')'
+                            f['VAL'] = 'date('+smart_unicode(d.year)+','+smart_unicode(d.month)+','+smart_unicode(d.day)+')'
                     else:
                         f['VAL'] = t + self.realnames[f['NAME']][0]
             elif t == '_':
@@ -666,24 +670,25 @@ class Calc(object):
                 p = self.getsym(p)
             if p['SYM'] != '}':
                 p['ERR'] = True
-                p['ERRMSG'] = 'Syntax error (omistus): } was expected in position '+str(p['POS'])
+                p['ERRMSG'] = 'Syntax error (omistus): } was expected in position '+smart_unicode(p['POS'])
                 return p
             else:
                 p = self.getsym(p)
         if calculate:
             try:
-                #print ' # Trying to find ', p['CND'] 
+                print ' !# Trying to find: ', p['CND'] 
                 if p['CND'] == '':
                     p['CV'] = True
                 else:
                     p['CV'] = eval(p['CND'])
+                    print '   -> ', p['CV']
             except:
-                #print ' # Cant calculate ', p['CND'] 
+                print ' !# Cant calculate ', p['CND'] 
                 p['CV'] = ''
         # tv_exp is ok
         if p['SYM'] != 'LOC':
             p['ERR'] = True
-            p['ERRMSG'] = 'Syntax error (omistus): local variable was expected in position '+str(p['POS'])
+            p['ERRMSG'] = 'Syntax error (omistus): local variable was expected in position '+smart_unicode(p['POS'])
             return p
         else:
             l_locvar = p['NAME'] 
@@ -692,7 +697,7 @@ class Calc(object):
         # locvar is ok
         if p['SYM'] != '=':
             p['ERR'] = True
-            p['ERRMSG'] = 'Syntax error (omistus): = was expected in position '+str(p['POS'])
+            p['ERRMSG'] = 'Syntax error (omistus): = was expected in position '+smart_unicode(p['POS'])
         else:
             # assign is ok
             p['SYM'] = ''
@@ -719,7 +724,7 @@ class Calc(object):
                 p = self.getsym(p)
             if p['SYM'] != 'END':
                 p['ERR'] = True
-                p['ERRMSG'] = 'Syntax error (omistus): unexpected symbol ' +p['SYM']+ ' in position '+str(p['POS'])
+                p['ERRMSG'] = 'Syntax error (omistus): unexpected symbol ' +p['SYM']+ ' in position '+smart_unicode(p['POS'])
         return p
     
     def tv_exp(self, p, calculate):
@@ -731,7 +736,7 @@ class Calc(object):
             p = self.getsym(p)
         if p['SYM'] not in ('<','>','='):
             p['ERR'] = True
-            p['ERRMSG'] = 'Syntax error (tv_exp): logic operator was expected in position '+str(p['POS'])
+            p['ERRMSG'] = 'Syntax error (tv_exp): logic operator was expected in position '+smart_unicode(p['POS'])
             return p
         l_op = p['SYM']
         if l_op == '=':
@@ -751,9 +756,11 @@ class Calc(object):
                 return p
             l_tv = l_tv + ' and ' + p['EXP']
         p['EXP'] = l_tv
+        print ' ?# ', p['EXP']
         if calculate:
             try:
                 p['VAL'] = eval(p['EXP'])
+                print ' ## ', p['VAL']
             except:
                 pass
         return p
@@ -832,7 +839,7 @@ class Calc(object):
                 return p
             if p['SYM'] != ')':
                 p['ERR'] = True
-                p['ERRMSG'] = 'Syntax error (term): ) was expected in position '+str(p['POS'])
+                p['ERRMSG'] = 'Syntax error (term): ) was expected in position '+smart_unicode(p['POS'])
                 return p
             l_exp = '(' + p['EXP'] + ')'
         elif p['SYM'] == 'FN':
@@ -840,7 +847,7 @@ class Calc(object):
             p = self.getsym(p)
             if p['SYM'] != '(':
                 p['ERR'] = True
-                p['ERRMSG'] = 'Syntax error (term): ( was expected in position '+str(p['POS'])
+                p['ERRMSG'] = 'Syntax error (term): ( was expected in position '+smart_unicode(p['POS'])
                 return p
             p['SYM'] = ''
             p = self.params(p, calculate)
@@ -850,22 +857,22 @@ class Calc(object):
                 p = self.getsym(p)
             if p['SYM'] != ')':
                 p['ERR'] = True
-                p['ERRMSG'] = 'Syntax error (term-fn): ) was expected in position '+str(p['POS'])+ ', found '+str(p['SYM'])
+                p['ERRMSG'] = 'Syntax error (term-fn): ) was expected in position '+smart_unicode(p['POS'])+ ', found '+smart_unicode(p['SYM'])
                 return p
             l_exp = l_fn + '(' + p['EXP'] + ')'
         elif p['SYM'] == 'LOC':
-            l_exp = str(p['VAL'])
+            l_exp = smart_unicode(p['VAL'])
         elif p['SYM'] == 'REC':
-            l_exp = str(p['VAL'])
+            l_exp = smart_unicode(p['VAL'])
         elif p['SYM'] == 'ALT':
-            l_exp = str(p['VAL'])
+            l_exp = smart_unicode(p['VAL'])
         elif p['SYM'] == 'NUM':
-            l_exp = str(p['VAL'])
+            l_exp = smart_unicode(p['VAL'])
         elif p['SYM'] == 'STR':
             l_exp = '\'' + p['NAME'] + '\''
         else:
             p['ERR'] = True
-            p['ERRMSG'] = 'Unexpected symbol in term: '+ str(p['SYM'])
+            p['ERRMSG'] = 'Unexpected symbol in term: '+ smart_unicode(p['SYM'])
         p['EXP'] = l_exp
         p['SYM'] = ''
         if calculate:
@@ -928,15 +935,22 @@ class Deals(object):
       tv_exp ::- exp ('<'|'>'|'=') exp {'&' tv_exp}.
     '''
     def find_alternate(self, condition):
-        #print 'Otsin kirjet, kus ', condition
+        print ' !! Otsin kirjet, kus ', condition
         if condition.find('#') >= 0 and self.qryrec == '':
-            c = condition.replace('#','row.')
-            rows = Pangakirje.objects.all().order_by('kuupaev', 'reatyyp', 'arhiveerimistunnus')
+            c = condition.replace('#','row.').replace("=='","==u'")
+            print '   !! --> ',[c]
+            rows = Pangakirje.objects.all().filter(arvestatud='N').order_by('kuupaev', 'reatyyp', 'arhiveerimistunnus')
             for row in rows:
-                if eval(c) and row.arvestatud != 'J':
+                print '   !!! ',row, [row.selgitus], type(row.selgitus)
+                if eval(c):
                     self.model.qryvars = self.model.set_vars(row)
                     self.qryrec = row
                     return True
+                else:
+                    cc = c.split(' and ')
+                    for q in cc:
+                        print '     > ',[q],eval(q), type(q)
+                    
         return False
     
     def parse(self, formula):
@@ -998,6 +1012,7 @@ class Deals(object):
         #self.debug()
         if l_qry and len(self.model.qryvars) == 0:
             self.error('data missing for alternate record')
+            self.debug()
             return created
         if l_qry and cmp(self.model.recvars, self.model.qryvars) == 0:
             self.info('same row, skipping')
@@ -1053,10 +1068,10 @@ class Deals(object):
         return created
     
     def debug(self, p = ''):
-        self.info('Formulas are '+ str(self.model.formulas))
-        self.info('LOC variables are '+ str(self.model.locvars))
-        self.info('REC variables are '+ str(self.model.recvars))
-        self.info('ALT variables are '+ str(self.model.qryvars))
+        self.info('Formulas are '+ smart_unicode(self.model.formulas))
+        self.info('LOC variables are '+ smart_unicode(self.model.locvars))
+        self.info('REC variables are '+ smart_unicode(self.model.recvars))
+        self.info('ALT variables are '+ smart_unicode(self.model.qryvars))
         if p != '':
             self.info( p )
         return

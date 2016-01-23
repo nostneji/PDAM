@@ -322,6 +322,9 @@ class VaraHaldur(object):
             if l_vt != '':
                 if float(l_vt.yldkogus) > 0:
                     v = l_vt.vara
+                    if v.vp_tyyp not in ['A','V','I']:
+                        # print u'Tüüp ' + v.vp_tyyp + ' -> A'
+                        v.vp_tyyp = 'A'
                     SH.update({v.vp_tyyp: SH.get(v.vp_tyyp) + float(l_vt.soetushind)})
                     TH.update({v.vp_tyyp: TH.get(v.vp_tyyp) + float(l_vt.turuhind)})
                     RS.update({v.vp_tyyp: RS.get(v.vp_tyyp) + float(l_vt.reserv)})
@@ -408,6 +411,8 @@ class VaraHaldur(object):
             for vt in vts:
                 l_vt = vt
             if l_vt != '' and (float(l_vt.yldkogus) > 0 or float(l_vt.reserv != 0)):
+                if v.vp_tyyp not in ['A','V','I']:
+                    v.vp_tyyp = 'A'
                 data.append({'nimetus':v.nimetus+'('+l_vt.tyyp+')', 'tyyp':v.vp_tyyp, 'kogus':l_vt.yldkogus, 
                              'sh':l_vt.soetushind, 'th':l_vt.turuhind, 'rs':l_vt.reserv})
                 SH.update({v.vp_tyyp: SH.get(v.vp_tyyp) + float(l_vt.soetushind)})

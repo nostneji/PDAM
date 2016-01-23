@@ -998,7 +998,7 @@ class Deals(object):
                 results = False
         return results
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def create(self, row, items, rule):
         created = 0
         self.model.recvars = self.model.set_vars(row)

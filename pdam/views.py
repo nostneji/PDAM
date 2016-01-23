@@ -2,9 +2,9 @@
 
 from datetime import *
 from dateutil.relativedelta import relativedelta
-from PDAM.pdam.models import *
-from PDAM.pdam.loader import BankLoader, KontoLoader, RuleLoader, AssetLoader, LedgerLoader
-from PDAM.pdam.deals import *
+from pdam.models import *
+from pdam.loader import BankLoader, KontoLoader, RuleLoader, AssetLoader, LedgerLoader
+from pdam.deals import *
 from django.template import Context, RequestContext
 from django.shortcuts import render_to_response, redirect
 from django.core.files import File
@@ -248,12 +248,19 @@ def process(request):
     result = render_to_response('showlog.html', context, context_instance=RequestContext(request))
     return result
 
-@transaction.commit_on_success
+@transaction.atomic
 def ledgers(request):
     print '* Ledgers', request.method, request.POST.keys()
     template = 'ledger.html'
     prs = Pearaamat.objects.all().order_by('aasta')
     pr_count = prs.count()
+    if pr_count == 0:
+        pr = Pearaamat()
+        pr.aasta = 2015
+        pr.on_avatud = True
+        pr.save()
+        prs = Pearaamat.objects.all().order_by('aasta')
+        pr_count = prs.count()
     if request.POST.has_key(u'year'):
         pr = Pearaamat.objects.get(aasta=request.POST[u'year'])
     else:

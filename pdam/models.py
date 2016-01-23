@@ -20,6 +20,7 @@ class Pangadokument (models.Model):
 class PangadokumentForm (ModelForm):
     class Meta:
         model = Pangadokument
+        fields = ('import_aeg', 'failinimi')
 
 class Konto (models.Model):
     osad = (
@@ -39,9 +40,9 @@ class Konto (models.Model):
     def __unicode__(self):
         return smart_unicode(self.osa + '.' + self.kontonumber + ':' + self.nimetus)
 
-class KontoForm (ModelForm):
-    class Meta:
-        model = Konto
+#class KontoForm (ModelForm):
+#    class Meta:
+#        model = Konto
         
 class Tehingutyyp (models.Model):        
     kirjeldus = models.CharField(max_length=100)
@@ -56,6 +57,7 @@ class Tehingutyyp (models.Model):
 class TehingutyypForm (ModelForm):
     class Meta:
         model = Tehingutyyp
+        fields = ('kirjeldus', 'reatyyp', 'tunnus', 'triger')
         
 class Kontokasutus (models.Model):
     tehingutyyp = models.ForeignKey(Tehingutyyp)
@@ -86,6 +88,7 @@ class Kontokasutus (models.Model):
 class KontokasutusForm (ModelForm):
     class Meta:
         model = Kontokasutus
+        fields = ('tehingutyyp', 'konto', 'on_deebet', 'valem')
         
 class Pearaamat (models.Model):
     aasta = models.SmallIntegerField()
@@ -105,6 +108,7 @@ class Algsaldo (models.Model):
 class AlgsaldoForm (ModelForm):
     class Meta:
         model = Algsaldo
+        fields = ('pearaamat', 'konto', 'on_deebet', 'summa', 'on_manual', 'on_fikseeritud')
 
 class Tehing (models.Model):
     pearaamat = models.ForeignKey(Pearaamat)
@@ -124,6 +128,7 @@ class Tehing (models.Model):
 class TehingForm (ModelForm):
     class Meta:
         model = Tehing
+        fields = ('pearaamat', 'tehingutyyp', 'sisu', 'tehingupaev', 'maksepaev', 'on_manual')
     
 class Kanne (models.Model):
     tehing = models.ForeignKey(Tehing)
@@ -144,7 +149,7 @@ class KanneForm (ModelForm):
         }
 
 class Pangakirje (models.Model):
-    pangakonto = models.CharField(max_length=15)
+    pangakonto = models.CharField(max_length=35)
     reatyyp = models.SmallIntegerField()
     kuupaev = models.DateField()
     partner = models.CharField(max_length=100, blank=True, null=True)
@@ -167,9 +172,9 @@ class Pangakirje (models.Model):
         return {'pangakonto':self.pangakonto,'kuupaev':smart_unicode(self.kuupaev), 'deebet':self.deebet, 'summa':self.summa, 'valuuta':self.valuuta,
                 'selgitus':smart_unicode(self.selgitus), 'arvestatud':self.arvestatud}
 
-class PangakirjeForm (ModelForm):
-    class Meta:
-        model = Pangakirje
+#class PangakirjeForm (ModelForm):
+#    class Meta:
+#        model = Pangakirje
  
 class Vara (models.Model):
     tyybid = (
@@ -187,6 +192,7 @@ class Vara (models.Model):
 class VaraForm (ModelForm):
     class Meta:
         model = Vara
+        fields = ('nimetus', 'vp_tyyp', 'lyhend')
      
 class VaraMall (models.Model):
     mall = models.CharField(max_length=255)
@@ -218,5 +224,7 @@ class Varatehing (models.Model):
 class VaratehingForm (ModelForm):
     class Meta:
         model = Varatehing
+        fields = ('vara', 'tyyp', 'tehingupaev', 'vaartuspaev', 'kogus', 'summa', 'valuuta', 'eur_summa',
+                  'yldkogus', 'soetushind', 'turuhind', 'reserv', 'tehing_id')
      
     

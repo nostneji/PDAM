@@ -333,7 +333,18 @@ class LedgerLoader:
                         t = None
                         try:
                             pr = Pearaamat.objects.get(aasta=int(r[1]))
+                        except:
+                            pr = Pearaamat()
+                            pr.aasta = int(r[1])
+                            pr.on_avatud = False
+                            pr.save()
+                        try:
                             tt = Tehingutyyp.objects.get(kirjeldus=r[2])
+                        except:
+                            tt = Tehingutyyp()
+                            tt.kirjeldus = r[2]
+                            tt.save()
+                        try:
                             d = r[5].split('.')
                             vkpv = date(int(d[2]), int(d[1]), int(d[0]))
                             d = r[4].split('.')

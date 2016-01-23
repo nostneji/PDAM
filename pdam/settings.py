@@ -9,9 +9,9 @@ TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = []
 
-ADMINS = (
+ADMINS = [
     ('Indrek Jentson', 'indrek.jentson@gmail.com'),
-)
+]
 
 MANAGERS = ADMINS
 
@@ -44,7 +44,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = None
+TIME_ZONE = 'Europe/Tallinn'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -85,51 +85,51 @@ STATIC_URL = '/icons/'
 ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
-STATICFILES_DIRS = (
+STATICFILES_DIRS = [
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    BASE_DIR + '/PDAM/pdam/icons/',
-    BASE_DIR + '/PDAM/pdam/css3menu/',
-)
+    BASE_DIR + '/pdam/icons/',
+    BASE_DIR + '/pdam/css3menu/',
+]
 
 # List of finder classes that know how to find static files in
 # various locations.
-STATICFILES_FINDERS = (
+STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-)
+]
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '&pog6l)984%go&t*2q3op18#&lgt+-gkj+9+14@(c#p1as(z7k'
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
+TEMPLATE_LOADERS = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.Loader',
-)
+]
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-)
+]
 
-ROOT_URLCONF = 'PDAM.urls'
+ROOT_URLCONF = 'urls'
 
-TEMPLATE_DIRS = (
+TEMPLATE_DIRS = [
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    BASE_DIR + '/PDAM/pdam/templates/',
-)
+    BASE_DIR + '/pdam/templates/',
+]
 
-INSTALLED_APPS = (
-    'PDAM.pdam',
+INSTALLED_APPS = [
+    'pdam',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -140,7 +140,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-)
+]
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

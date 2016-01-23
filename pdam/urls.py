@@ -1,5 +1,5 @@
 from django.conf.urls import *
-from PDAM.pdam.views import *
+from pdam.views import *
 
 # handler500 = 'djangotoolbox.errorviews.server_error'
 

@@ -58,6 +58,11 @@
               <td><input type="hidden" name="pk" value="{{pk}}" /></td>
               <td><input type="submit" name="action" value="Add" /></td>
            </form>
+           <form action="/assettrans/do/" method="post">  {% csrf_token %}
+              <td><input type="hidden" name="pk" value="{{pk}}" /></td>
+              <td align="right"><input type="number" name="summa" id="id_sum" step=".01"/></td>
+              <td><input type="submit" name="action" value="Add_H" /></td>
+           </form>
         </tr>
       </table>
     </TD>

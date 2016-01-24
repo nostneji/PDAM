@@ -56,9 +56,15 @@ def RP_korras(tehing):
               'RP': round(float(AS) + float(KS) - float(PS) - float(TS),2)}
     return result
 
-def findBIL(pr):
-    akpv = date(pr.aasta, 1, 1)
-    lkpv = date(pr.aasta, 12, 31)
+def findBIL(pr, kvartal=0): # bilanss vastava kvartali lõpu seisuga
+    period = ((0, date(pr.aasta, 1, 1), date(pr.aasta, 12, 31)),
+              (1, date(pr.aasta, 1, 1), date(pr.aasta, 3, 31)),
+              (2, date(pr.aasta, 1, 1), date(pr.aasta, 6, 30)),
+              (3, date(pr.aasta, 1, 1), date(pr.aasta, 9, 30)),
+              (4, date(pr.aasta, 1, 1), date(pr.aasta, 12, 31))
+              )
+    akpv = period[kvartal][1]
+    lkpv = period[kvartal][2]
     vtx = []
     tot = []
     # Aktiva
@@ -202,7 +208,7 @@ def tuluKuluSulgemine(pr):
     Kanne.objects.create(tehing=t, konto=kt, on_deebet=False, summa=TDS, on_manual=True)
     return
 
-def kasumiAruanne(pr):
+def kasumiAruanne(pr, kvartal=0):
     skeem1 = ((u'  Müügitulu', 'I', '31'),
               (u'  Muud äritulud', 'I', '32', '34'),
               (u' Tulud kokku', 'S', '31', '32', '34'),
@@ -224,8 +230,15 @@ def kasumiAruanne(pr):
            (u'Väärtpaberite müügikahjum', 'I', '467'), 
            (u'Kokku finantstulud ja -kulud', 'T', '337', '3361', '4661', '3351','3352','339','468','469', '338', '467')
            )    
-    akpv = date(pr.aasta, 1, 1)
-    lkpv = date(pr.aasta, 12, 31)
+
+    period = ((0, date(pr.aasta, 1, 1), date(pr.aasta, 12, 31)),
+              (1, date(pr.aasta, 1, 1), date(pr.aasta, 3, 31)),
+              (2, date(pr.aasta, 4, 1), date(pr.aasta, 6, 30)),
+              (3, date(pr.aasta, 7, 1), date(pr.aasta, 9, 30)),
+              (4, date(pr.aasta, 10, 1), date(pr.aasta, 12, 31))
+              )
+    akpv = period[kvartal][1]
+    lkpv = period[kvartal][2]
     vtx = []
     tot = []
     txs = Tehing.objects.all().filter(pearaamat=pr, tehingutyyp__kirjeldus='Tulu- ja kulukontode sulgemine')
@@ -293,7 +306,7 @@ def kasumiAruanne(pr):
             
     return (kas, ftk, tot)
     
-def rahavoogudeAruanne(pr):
+def rahavoogudeAruanne(pr, kvartal=0):
     sk = ((u'Väljamaksed tarnijatele kaupade ja teenuste eest','I', '#a', '41' ),
           (u'Väljamaksed töötajatele','I', '#b', '4311'),
           (u'Muud rahavood äritegevusest','I', '#c','4321','4322','4323','4324','4325','4351','4353','4355'),
@@ -309,14 +322,20 @@ def rahavoogudeAruanne(pr):
           (u'Saadud laenude tagasimaksed','I', '#l', '?D251'),
           (u'Kokku rahavood finantseerimistegevusest','S', '#m', ':k', ':l'),
           (u'Kokku rahavood','T', '#n', ':d', ':j', ':m'),
-          (u'Raha ja raha ekvivalendid perioodi alguses','I', '#o', '?A1131', '?A1132', '?A1133','?A115'),
+          (u'Raha ja raha ekvivalendid perioodi alguses','I', '#o','?A1131','?A1132','?A1133','?A115','?P1131','?P1132','?P1133','?P115'),
           (u'Valuutakursside muutuste mõju','I', '#r', '3361', '4661'),
           (u'Raha ja raha ekvivalentide muutus','T', '#p', '1131', '1132', '1133', '115', ':r-'),
           (u'Raha ja raha ekvivalendid perioodi lõpus','I', '#s', ':o', ':p', ':r' ),
           (u'Kontroll: rahavood vs raha muutus','I', '#t', ':n', ':p-')
           )
-    akpv = date(pr.aasta, 1, 1)
-    lkpv = date(pr.aasta, 12, 31)
+    period = ((0, date(pr.aasta, 1, 1), date(pr.aasta, 12, 31)),
+              (1, date(pr.aasta, 1, 1), date(pr.aasta, 3, 31)),
+              (2, date(pr.aasta, 4, 1), date(pr.aasta, 6, 30)),
+              (3, date(pr.aasta, 7, 1), date(pr.aasta, 9, 30)),
+              (4, date(pr.aasta, 10, 1), date(pr.aasta, 12, 31))
+              )
+    akpv = period[kvartal][1]
+    lkpv = period[kvartal][2]
     vtx = []
     tot = []
     txs = Tehing.objects.all().filter(pearaamat=pr, tehingutyyp__kirjeldus='Tulu- ja kulukontode sulgemine')
@@ -408,6 +427,13 @@ def rahavoogudeAruanne(pr):
                     AK = Algsaldo.objects.filter(pearaamat=pr, konto=kt, on_deebet=False).aggregate(Sum('summa'))['summa__sum']
                     SK = float((nvl(AD,0) - nvl(AK,0))* (1 if kt.osa in ('A', 'K') else -1))
                     r_sum += SK
+                elif s[1] == 'P':
+                    kt = Konto.objects.get(pk=s[2:])
+                    boy = date(pr.aasta, 1, 1)
+                    ks = Kanne.objects.all().filter(konto=kt, tehing__maksepaev__gte=boy, tehing__maksepaev__lt=akpv, on_deebet=False).exclude(tehing=TX).aggregate(Sum('summa'))['summa__sum']
+                    r_sum += float(nvl(ks, 0) * (-1 if kt.osa in ('A', 'K') else 1))
+                    ks = Kanne.objects.all().filter(konto=kt, tehing__maksepaev__gte=boy, tehing__maksepaev__lt=akpv, on_deebet=True).exclude(tehing=TX).aggregate(Sum('summa'))['summa__sum']
+                    r_sum += float(nvl(ks, 0) * (1 if kt.osa in ('A', 'K') else -1))
             elif s[0] == ':': # var
                 r_sum += mem.get(s[1]) * (-1 if (len(s) == 3 and s[2] == '-') else 1)
         if r[2][0] == '#':

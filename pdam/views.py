@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from pdam.models import *
 from pdam.loader import BankLoader, KontoLoader, RuleLoader, AssetLoader, LedgerLoader
 from pdam.deals import *
+from varahaldur import VaraHaldur
 from django.template import Context, RequestContext
 from django.shortcuts import render_to_response, redirect
 from django.core.files import File
@@ -533,12 +534,22 @@ def asset_action_handler(request):
 
 def assettrans_action_handler(request):
     context = {}
+    template = 'assettrans_edit.html'
     if request.method == 'POST' and request.POST.has_key('action'):
         if request.POST['action'] == 'Add':
             pk = request.POST['pk']
             v = Vara.objects.get(pk=pk)
-            form = VaratehingForm(vara=v)
+            form = VaratehingForm()
+            form.vara=v
             context = {'form': form, 'pk': pk, 'ipk': 0}
+        elif request.POST['action'] == 'Add_H':
+            pk = request.POST['pk']
+            summa = request.POST['summa']
+            vh = VaraHaldur()
+            pr = vh.getActivePR()
+            vkpv = date(pr.aasta, 12, 31)
+            kogus = vh.getEndCount(pk)
+            vh.reprize(pk, vkpv, kogus, summa, 'EUR')
         elif request.POST['action'] == 'Update':
             pk = request.POST['pk']
             ipk = request.POST['ipk']
@@ -551,7 +562,7 @@ def assettrans_action_handler(request):
         elif request.POST['action'] == 'Save':
             pk = request.POST['pk']
             ipk = request.POST['ipk']
-            if ipk != '':
+            if ipk != '0':
                 doc=Varatehing.objects.get(pk=ipk)
                 form = VaratehingForm(request.POST, instance=doc)
             else:
@@ -563,7 +574,7 @@ def assettrans_action_handler(request):
         elif request.POST['action'] == 'Cancel':
             pass
     if len(context) > 0:
-        result = render_to_response('assettrans_edit.html', context, context_instance=RequestContext(request))
+        result = render_to_response(template, context, context_instance=RequestContext(request))
     else:
         result = redirect(assets)
     return result 
@@ -644,8 +655,11 @@ def reports(request):
                 pr = Pearaamat.objects.get(aasta=request.POST['year'])
             else:
                 pr = prs.reverse()[:1][0]
-            vtx = findBIL(pr)
-            context = Context({'prs':prs, 'pr_count':pr_count, 'year':pr.aasta, 'vtx':vtx[0], 'tot':vtx[1]})
+            kvartal = 0
+            if request.POST.has_key('kvartal'):
+                kvartal = int(request.POST['kvartal'])
+            vtx = findBIL(pr, kvartal)
+            context = Context({'prs':prs, 'pr_count':pr_count, 'year':pr.aasta, 'kvartal':kvartal, 'vtx':vtx[0], 'tot':vtx[1]})
             return render_to_response('reports_bil.html', context, context_instance=RequestContext(request))
         if request.GET['rt'] == 'kas':
             prs = Pearaamat.objects.all().order_by('aasta')
@@ -654,8 +668,11 @@ def reports(request):
                 pr = Pearaamat.objects.get(aasta=request.POST['year'])
             else:
                 pr = prs.reverse()[:1][0]
-            vtx = kasumiAruanne(pr)
-            context = Context({'prs':prs, 'pr_count':pr_count, 'year':pr.aasta, 'vtx':vtx[0], 'fin':vtx[1], 'tot':vtx[2]})
+            kvartal = 0
+            if request.POST.has_key('kvartal'):
+                kvartal = int(request.POST['kvartal'])
+            vtx = kasumiAruanne(pr, kvartal)
+            context = Context({'prs':prs, 'pr_count':pr_count, 'year':pr.aasta, 'kvartal':kvartal, 'vtx':vtx[0], 'fin':vtx[1], 'tot':vtx[2]})
             return render_to_response('reports_kas.html', context, context_instance=RequestContext(request))
         if request.GET['rt'] == 'rva':
             prs = Pearaamat.objects.all().order_by('aasta')
@@ -664,8 +681,11 @@ def reports(request):
                 pr = Pearaamat.objects.get(aasta=request.POST['year'])
             else:
                 pr = prs.reverse()[:1][0]
-            rva = rahavoogudeAruanne(pr)
-            context = Context({'prs':prs, 'pr_count':pr_count, 'year':pr.aasta, 'rva':rva })
+            kvartal = 0
+            if request.POST.has_key('kvartal'):
+                kvartal = int(request.POST['kvartal'])
+            rva = rahavoogudeAruanne(pr, kvartal)
+            context = Context({'prs':prs, 'pr_count':pr_count, 'year':pr.aasta, 'kvartal':kvartal, 'rva':rva })
             return render_to_response('reports_rva.html', context, context_instance=RequestContext(request))
     elif request.POST.has_key('action'):
         if request.POST['action'] == u'Kustuta erinevustega tehingud':

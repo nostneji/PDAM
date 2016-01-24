@@ -9,6 +9,13 @@
     <option value="{{r.aasta}}" {% if r.aasta == year %} selected="selected" {% endif %}>{{r.aasta}}</option>
     {% endfor %}
     </select>
+    <select name="kvartal" onchange="this.form.submit()">
+    <option value="0" {% if kvartal == 0 %} selected="selected" {% endif %}>Kogu aasta</option>
+    <option value="1" {% if kvartal == 1 %} selected="selected" {% endif %}>I kvartal</option>
+    <option value="2" {% if kvartal == 2 %} selected="selected" {% endif %}>II kvartal</option>
+    <option value="3" {% if kvartal == 3 %} selected="selected" {% endif %}>III kvartal</option>
+    <option value="4" {% if kvartal == 4 %} selected="selected" {% endif %}>IV kvartal</option>
+    </select>
 </form>
 {% endif %}
 

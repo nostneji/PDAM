@@ -241,10 +241,13 @@ class AssetLoader:
                         if r[10] == '':
                             r[10] = v.lyhend
                         print ' # Found: ', r[0]
-                    except:
+                    except Vara.DoesNotExist:
                         print ' # Not found, will create: ', r[0]
                         v = Vara.objects.create(nimetus=r[0], vp_tyyp=r[8], lyhend=r[10])
                         v_id = v.id
+                    except Vara.MultipleObjectsReturned:
+                        vs = Vara.objects.all().filter(nimetus=r[0])
+                        print ' # NB! Found more than one: ', len(vs), r[0]
                     vrec = {'nimetus':r[0], 'algsaldo':r[13+delta], 'id':v_id, u'tüüp':r[8], 'lyhend':r[10]}
                     print vrec
                         

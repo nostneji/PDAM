@@ -185,6 +185,7 @@ class Vara (models.Model):
     nimetus = models.CharField(max_length=100)
     vp_tyyp = models.CharField(max_length=1, choices=tyybid)
     lyhend = models.CharField(max_length=20)
+    kogus = 0
         
     def __unicode__(self):
         return smart_unicode(self.nimetus+' ('+self.lyhend+')')

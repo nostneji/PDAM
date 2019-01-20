@@ -267,7 +267,7 @@ def ledgers(request):
     else:
         pr = prs.reverse()[:1][0]
     if request.method == u'POST' and request.POST.has_key(u'action'):
-        print '* Ledgers/Action: ',request.POST[u'action']
+        print '* Ledgers/Action: ',request.POST[u'action'],pr.aasta
         if request.POST['action'] == u'Loe tehingud':
             request.encoding = 'utf-8'
             if request.FILES.has_key('cvs'):
@@ -434,7 +434,8 @@ def assets(request):
     vh = VaraHaldur()
     assets = []
     for i in a:
-        if vh.getEndCount(i.id) > 0.0 or vh.getLastDealYear(i.id) == vh.getActivePR().aasta: 
+        if vh.getEndCount(i.id) > 0.0 or vh.getLastDealYear(i.id) == vh.getActivePR().aasta:
+            i.kogus = vh.getEndCount(i.id)
             assets.append(i) 
     count = len(assets)
     stat = []
